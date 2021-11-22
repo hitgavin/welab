@@ -1,6 +1,17 @@
 cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 
+if(COMMAND CMAKE_POLICY)
+  CMAKE_POLICY(SET CMP0003 NEW)
+  CMAKE_POLICY(SET CMP0004 NEW)
+endif(COMMAND CMAKE_POLICY)
+
+if(POLICY CMP0100)
+  cmake_policy(SET CMP0100 NEW)
+endif()
+
 project(welab)
+
+add_compile_options(-std=c++17)
 
 string(TOLOWER ${PROJECT_NAME} PROJECT_NAME_LOWER)
 string(TOUPPER ${PROJECT_NAME} PROJECT_NAME_UPPER)
@@ -30,11 +41,12 @@ enable_testing()
 # with -fPIC
 if(UNIX AND NOT WIN32)
   set(CMAKE_INSTALL_PREFIX "/usr" CACHE STRING "Install Prefix")
+  find_program(CMAKE_UNAME uname /bin /usr/bin /usr/local/bin)
   if(CMAKE_UNAME)
     exec_program(uname ARGS -m OUTPUT_VARIABLE CMAKE_SYSTEM_PROCESSOR)
     set(CMAKE_SYSTEM_PROCESSOR ${CMAKE_SYSTEM_PROCESSOR} CACHE INTERNAL "processor type (i386 and x86_64)")
     if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64")
-      add_definitions((-fPIC))
+      add_definitions(-fPIC)
     endif(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64")
   endif(CMAKE_UNAME)
 endif()
@@ -44,7 +56,7 @@ set(LIB_INSTALL_DIR ${CMAKE_INSTALL_LIBDIR})
 set(BIN_INSTALL_DIR ${CMAKE_INSTALL_BINDIR})
 
 set(BUILD_WELAB ON CACHE INTERNAL "Build welab" FORCE)
-set(build_errors "" INTERNAL "build errors" FORCE)
+set(build_errors "" CACHE INTERNAL "build errors" FORCE)
 set(build_warnings "" CACHE INTERNAL "build warnings" FORCE)
 
 set(MIN_OGRE_VERSION 1.7.4 CACHE INTERNAL "Ogre version requirement" FORCE)
@@ -70,9 +82,6 @@ FILE(TO_NATIVE_PATH "${WELAB_MODEL_PATH}" WELAB_MODEL_PATH)
 set(WELAB_RELATIVE_RESOURCE_PATH ${CMAKE_INSTALL_DATAROOTDIR}/welab-${WELAB_MAJOR_VERSION})
 set(WELAB_RESOURCE_PATH ${CMAKE_INSTALL_PREFIX}/${WELAB_RELATIVE_RESOURCE_PATH})
 FILE(TO_NATIVE_PATH "${WELAB_RESOURCE_PATH}" WELAB_RESOURCE_PATH)
-
-set(OGRE_RESOURCE_PATH ${OGRE_PLUGINDIR})
-string(REPLACE "\n" "" OGRE_RESOURCE_PATH ${OGRE_RESOURCE_PATH})
 
 message(STATUS "\n\n====== Finding 3rd Party Packages ======")
 include(${welab_cmake_dir}/search_for_stuff.cmake)
@@ -147,11 +156,11 @@ add_custom_target(uninstall
 
 if(build_errors)
   message("-- BUILD ERRORS: These must be resolved before compiling.")
-  foreach (msg ${build_errors})
+  foreach(msg ${build_errors})
     message("-- ${msg}")
-  endforeach ()
+  endforeach()
   message("-- END BUILD ERRORS\n")
-  message (FATAL_ERROR "Errors encountered in build. Please see the BUILD ERRORS above.")
+  message(FATAL_ERROR "Errors encountered in build. Please see the BUILD ERRORS above.")
 else(build_errors)
 
   ################################################

@@ -37,9 +37,10 @@
 
 #include <memory>
 
-#define WELAB_DECLARE_PRIVATE(Class)             \
-  typedef std::unique_ptr<Class##Private *> Imp; \
-  Imp d_ptr;                                     \
-  friend class Class##Private;
+#define WELAB_DECLARE_PRIVATE(Class)           \
+  class Class##Private;                        \
+  typedef std::unique_ptr<Class##Private> Imp; \
+  Imp d_ptr;                                   \
+  friend class Class##Private
 
 #endif

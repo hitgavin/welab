@@ -35,10 +35,11 @@
 #ifndef WELAB__CONSOLE_BRIDGE__CONSOLE_HPP_
 #define WELAB__CONSOLE_BRIDGE__CONSOLE_HPP_
 
-#include <macros/declare_private.hpp>
 #include <string>
 
-#include "console_bridge_export.hpp"
+#include "./console_bridge_export.h"
+#include "macros/class_forward.hpp"
+#include "macros/declare_private.hpp"
 
 // clang-format off
 /**
@@ -77,7 +78,7 @@
   console_bridge::log(__FILE__, __LINE__, console_bridge::CONSOLE_BRIDGE_LOG_INFO, __VA_ARGS__)
 
 #define CONSOLE_BRIDGE_logDebug(...) \
-  console_bridge::log(__FILE__, __LINE__, console_bridge::CONSOLE_BRIDGE_LOG_DEBUG, __VAV_ARGS__)
+  console_bridge::log(__FILE__, __LINE__, console_bridge::CONSOLE_BRIDGE_LOG_DEBUG, __VA_ARGS__)
 
 // clang-format on
 
@@ -116,22 +117,21 @@ public:
    * @param filename of the output log
    * @param line
    */
-  virtual void log(const std::string& text, LogLevel level,
-                   const char* filename, int line) = 0;
+  virtual void log(const std::string& text, LogLevel level, const char* filename, int line) = 0;
 };
 
 /**
  * @brief Default implementation of OutputHandler. This sends the information to
  * the console.
  */
-class CONSOLE_BRIDGE_DLLAPI OutputHandlerSTD : public OutputHnadler {
+class CONSOLE_BRIDGE_DLLAPI OutputHandlerSTD : public OutputHandler {
 public:
   OutputHandlerSTD() : OutputHandler() {}
 
-  virtual void log(const std::string& text, LogLevel level,
-                   const char* filename, int line);
+  virtual void log(const std::string& text, LogLevel level, const char* filename, int line);
 };
 
+WELAB_CLASS_FORWARD(OutputHandlerFilePrivate);
 /**
  * @brief Implementation of OutputHandler that saves messages in a file.
  */
@@ -141,11 +141,10 @@ public:
   explicit OutputHandlerFile(const char* filename);
   virtual ~OutputHandlerFile();
 
-  virtual void log(const std::string& text, LogLevel level,
-                   const char* filename, int line);
+  virtual void log(const std::string& text, LogLevel level, const char* filename, int line);
 
 private:
-  WELAB_DECLARE_PRIVATE(OutputHandlerFile)
+  WELAB_DECLARE_PRIVATE(OutputHandlerFile);
 };
 
 /**
@@ -188,7 +187,7 @@ CONSOLE_BRIDGE_DLLAPI LogLevel getLogLevel();
  * rather used via a \ref logging "logging macro". Formats the message string
  * given the arguments and forwards the string to the output handler
  */
-CONSOLE_BRIDGE_DLLAPI void log(const char* file, int line, LogLevel level,
-                               const char* m, ...);
+CONSOLE_BRIDGE_DLLAPI void log(const char* file, int line, LogLevel level, const char* m, ...);
 }  // namespace console_bridge
+
 #endif

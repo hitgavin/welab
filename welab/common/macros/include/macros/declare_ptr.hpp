@@ -57,6 +57,6 @@
   typedef std::weak_ptr<Type> Name##WeakPtr;            \
   typedef std::weak_ptr<const Type> Name##ConstWeakPtr; \
   typedef std::unique_ptr<Type> Name##UniquePtr;        \
-  typedef std::unique_ptr<const Type> Name##ConstUniquePtr;
+  typedef std::unique_ptr<const Type> Name##ConstUniquePtr
 
 #endif

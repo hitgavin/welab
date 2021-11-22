@@ -122,12 +122,6 @@ macro (wl_setup_apple)
   set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-undefined -Wl,dynamic_lookup")
 endmacro()
 
-# This should be migrated to more fine control solution based on set_property APPEND
-# directories. It's present on cmake 2.8.8 while precise version is 2.8.7
-link_directories(${PROJECT_BINARY_DIR}/test)
-include_directories("${PROJECT_SOURCE_DIR}/test/gtest/include")
-include (${gazebo_cmake_dir}/GazeboTestUtils.cmake)
-
 #################################################
 # Macro to setup supported compiler flags
 # Based on work of Florent Lamiraux, Thomas Moulard, JRL, CNRS/AIST.

@@ -35,7 +35,7 @@
 #ifndef WELAB__COMMON__CLASS_FORWARD_HPP_
 #define WELAB__COMMON__CLASS_FORWARD_HPP_
 
-#include "declare_ptr.h"
+#include "declare_ptr.hpp"
 
 /**
  * @def WELAB_CLASS_FORWARD
@@ -44,7 +44,7 @@
  */
 #define WELAB_CLASS_FORWARD(C) \
   class C;                     \
-  WELAB_DECLARE_PTR(C, C);
+  WELAB_DECLARE_PTR(C, C)
 
 /**
  * @def WELAB_STRUCT_FORWARD
@@ -53,5 +53,5 @@
  */
 #define WELAB_STRUCT_FORWARD(C) \
   struct C;                     \
-  WELAB_DECLARE_PTR(C, C);
+  WELAB_DECLARE_PTR(C, C)
 #endif
