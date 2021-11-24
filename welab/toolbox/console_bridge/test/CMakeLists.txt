@@ -1,8 +1,3 @@
-find_package(gtest)
-
-include_directories(GTEST_INCLUDE_DIRS)
-
-
 set (tests
   console_test.cpp 
 )
@@ -14,11 +9,10 @@ foreach(gtest_src_file ${tests})
   add_executable(${BINARY_NAME} ${gtest_src_file})
 
   add_dependencies(${BINARY_NAME}
-    console_bridge
-    ${GTEST_BOTH_LIBRARIES})
+    console_bridge)
   
   target_link_libraries(${BINARY_NAME}
-    ${GTEST_BOTH_LIBRARIES}
+    ${GTEST_LIBRARIES}
     console_bridge
   )
 

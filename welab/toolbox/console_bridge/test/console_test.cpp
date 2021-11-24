@@ -283,3 +283,8 @@ TEST_F(FileHandlerTest, TestInformLogsWithLogLevel) {
   EXPECT_NE(result.find(expected_text), result.npos)
       << "Log file did not contain expected text, instead it contained:\n\n: " << result;
 }
+
+int main(int argc, char *argv[]) {
+  testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
+}

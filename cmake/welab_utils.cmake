@@ -1,40 +1,41 @@
+include(CMakeParseArguments)
 ################################################################################
 #APPEND_TO_CACHED_STRING(_string _cacheDesc [items...])
 # Appends items to a cached list.
-MACRO (APPEND_TO_CACHED_STRING _string _cacheDesc)
-  FOREACH (newItem ${ARGN})
-    SET (${_string} "${${_string}} ${newItem}" CACHE INTERNAL ${_cacheDesc} FORCE)
-  ENDFOREACH (newItem ${ARGN})
-  #STRING(STRIP ${${_string}} ${_string})
-ENDMACRO (APPEND_TO_CACHED_STRING)
+macro (APPEND_TO_CACHED_STRING _string _cacheDesc)
+  foreach (newItem ${ARGN})
+    set (${_string} "${${_string}} ${newItem}" CACHE INTERNAL ${_cacheDesc} FORCE)
+  endforeach (newItem ${ARGN})
+  #string(STRIP ${${_string}} ${_string})
+endmacro (APPEND_TO_CACHED_STRING)
 
 ################################################################################
 # APPEND_TO_CACHED_LIST (_list _cacheDesc [items...]
 # Appends items to a cached list.
-MACRO (APPEND_TO_CACHED_LIST _list _cacheDesc)
-  SET (tempList ${${_list}})
-  FOREACH (newItem ${ARGN})
-    LIST (APPEND tempList ${newItem})
-  ENDFOREACH (newItem ${newItem})
-  SET (${_list} ${tempList} CACHE INTERNAL ${_cacheDesc} FORCE)
-ENDMACRO(APPEND_TO_CACHED_LIST)
+macro (APPEND_TO_CACHED_LIST _list _cacheDesc)
+  set (tempList ${${_list}})
+  foreach (newItem ${ARGN})
+    list (APPEND tempList ${newItem})
+  endforeach (newItem ${newItem})
+  set (${_list} ${tempList} CACHE INTERNAL ${_cacheDesc} FORCE)
+endmacro(APPEND_TO_CACHED_LIST)
 
 #################################################
 # Macro to turn a list into a string (why doesn't CMake have this built-in?)
-MACRO (LIST_TO_STRING _string _list)
-    SET (${_string})
-    FOREACH (_item ${_list})
-      SET (${_string} "${${_string}} ${_item}")
-    ENDFOREACH (_item)
-    #STRING(STRIP ${${_string}} ${_string})
-ENDMACRO (LIST_TO_STRING)
+macro (LIST_TO_STRING _string _list)
+    set (${_string})
+    foreach (_item ${_list})
+      set (${_string} "${${_string}} ${_item}")
+    endforeach (_item)
+    #string(STRIP ${${_string}} ${_string})
+endmacro (LIST_TO_STRING)
 
 #################################################
 # BUILD ERROR macro
 macro (BUILD_ERROR)
   foreach (str ${ARGN})
-    SET (msg "\t${str}")
-    MESSAGE (STATUS ${msg})
+    set (msg "\t${str}")
+    message (STATUS ${msg})
     APPEND_TO_CACHED_LIST(build_errors "build errors" ${msg})
   endforeach ()
 endmacro (BUILD_ERROR)
@@ -43,11 +44,29 @@ endmacro (BUILD_ERROR)
 # BUILD WARNING macro
 macro (BUILD_WARNING)
   foreach (str ${ARGN})
-    SET (msg "\t${str}" )
-    MESSAGE (STATUS ${msg} )
+    set (msg "\t${str}" )
+    message (STATUS ${msg} )
     APPEND_TO_CACHED_LIST(build_warnings "build warning" ${msg})
   endforeach (str ${ARGN})
 endmacro (BUILD_WARNING)
+
+#################################################
+# Add include directories for dependencies target
+function(welab_depends TARGET)
+  set(options PUBLIC PRIVATE)
+  set(multi_value_args DEPENDS)
+  cmake_parse_arguments(PARSE_ARGV 1 WELAB_DEPENDS "${options}" "" "${multi_value_args}")
+  foreach(DEP ${WELAB_DEPENDS_DEPENDS})
+    get_target_property(INCLUDES ${DEP} INTERFACE_INCLUDE_DIRECTORIES)
+    if(INCLUDES)
+      if(WELAB_DEPENDS_PRIVATE)
+        target_include_directories(${TARGET} PRIVATE ${INCLUDES})
+      else()
+        target_include_directories(${TARGET} PUBLIC ${INCLUDES})
+      endif()
+    endif()
+  endforeach()
+endfunction()
 
 #################################################
 macro (wl_setup_unix)
@@ -163,3 +182,5 @@ macro(add_pch target_name filename)
   add_dependencies(${target_name} ${target_name}_pch)
 
 endmacro()
+
+

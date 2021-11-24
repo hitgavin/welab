@@ -1,13 +1,12 @@
 cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 
-if(COMMAND CMAKE_POLICY)
-  CMAKE_POLICY(SET CMP0003 NEW)
-  CMAKE_POLICY(SET CMP0004 NEW)
-endif(COMMAND CMAKE_POLICY)
-
-if(POLICY CMP0100)
-  cmake_policy(SET CMP0100 NEW)
-endif()
+if(COMMAND cmake_policy)
+  cmake_policy(SET CMP0003 NEW)
+  cmake_policy(SET CMP0004 NEW)
+  if(POLICY CMP0100)
+    cmake_policy(SET CMP0100 NEW)
+  endif()
+endif(COMMAND cmake_policy)
 
 project(welab)
 
@@ -33,10 +32,30 @@ endif()
 
 set(CMAKE_CXX_EXTENSIONS off)
 
+########################################
+# Package Creation:
+include(${welab_cmake_dir}/welab_cpack.cmake)
+set(CPACK_PACKAGE_VERSION "${WELAB_VERSION_FULL}")
+set(CPACK_PACKAGE_VERSION_MAJOR "${WELAB_MAJOR_VERSION}")
+set(CPACK_PACKAGE_VERSION_MINOR "${WELAB_MINOR_VERSION}")
+set(CPACK_PACKAGE_VERSION_PATCH "${WELAB_PATCH_VERSION}")
+
+if(CPACK_GENERATOR)
+  message(STATUS "Found CPack generators: ${CPACK_GENERATOR}")
+
+  configure_file("${welab_cmake_dir}/cpack_options.cmake.in" ${WELAB_CPACK_CFG_FILE} @ONLY)
+  set(CPACK_PROJECT_CONFIG_FILE ${WELAB_CPACK_CFG_FILE})
+  include(CPack)
+endif()
+
+# If we're configuring only to package source, stop here
+if(PACKAGE_SOURCE_ONLY)
+  message(WARNING "Configuration was done in PACKAGE_SOURCE_ONLY mode. You can build a tarball (make package_source), but nothing else.")
+  return()
+endif()
+
 # Documentation
 add_subdirectory(doc)
-
-enable_testing()
 
 # with -fPIC
 if(UNIX AND NOT WIN32)
@@ -173,6 +192,7 @@ else(build_errors)
   message (STATUS "Build Type: ${CMAKE_BUILD_TYPE}")
   message (STATUS "Install path: ${CMAKE_INSTALL_PREFIX}")
 
+  include(CTest)
   if(BUILD_WELAB)
     add_subdirectory(welab)
     if(BUILD_TESTING)
