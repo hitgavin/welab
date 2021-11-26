@@ -59,18 +59,18 @@ public:
 //////////////////////////////////////////////////
 TEST(ConsoleTest, MacroExpansionTest_ItShouldCompile) {
   if (true) {
-    CONSOLE_BRIDGE_logDebug("Testing Log");
+    WELAB_DEBUG("Testing Log");
   }
   if (true) {
-    CONSOLE_BRIDGE_logDebug("Testing Log");
+    WELAB_DEBUG("Testing Log");
   } else {
     assert(true);
   }
 
   if (true) {
-    CONSOLE_BRIDGE_logDebug("Testing Log");
+    WELAB_DEBUG("Testing Log");
   } else {
-    CONSOLE_BRIDGE_logDebug("Testing Log");
+    WELAB_DEBUG("Testing Log");
   }
 }
 
@@ -83,13 +83,13 @@ TEST(ConsoleTest, MultipleArguments) {
   console_bridge::useOutputHandler(&string_oh);
   EXPECT_EQ(&string_oh, console_bridge::getOutputHandler());
 
-  CONSOLE_BRIDGE_logError("no extra parameters");
+  WELAB_ERROR("no extra parameters");
   EXPECT_EQ(string_oh.text_, "no extra parameters");
 
-  CONSOLE_BRIDGE_logError("one integer: %d", 42);
+  WELAB_ERROR("one integer: %d", 42);
   EXPECT_EQ(string_oh.text_, "one integer: 42");
 
-  CONSOLE_BRIDGE_logError("two floats: %.2f, %.2f", 42.01, 1 / 3.0);
+  WELAB_ERROR("two floats: %.2f, %.2f", 42.01, 1 / 3.0);
   EXPECT_EQ(string_oh.text_, "two floats: 42.01, 0.33");
 }
 
@@ -100,7 +100,7 @@ TEST(ConsoleTest, LogLevelTooLow) {
   OutputHandlerString string_oh;
   console_bridge::useOutputHandler(&string_oh);
   console_bridge::setLogLevel(console_bridge::LogLevel::CONSOLE_BRIDGE_LOG_INFO);
-  CONSOLE_BRIDGE_logDebug("Debug");
+  WELAB_DEBUG("Debug");
 
   EXPECT_EQ(string_oh.text_, "");
   EXPECT_EQ(string_oh.log_level_, console_bridge::LogLevel::CONSOLE_BRIDGE_LOG_NONE);
@@ -116,12 +116,12 @@ TEST(ConsoleTest, SwapHandlers) {
   EXPECT_EQ(&string_oh1, console_bridge::getOutputHandler());
   console_bridge::setLogLevel(console_bridge::LogLevel::CONSOLE_BRIDGE_LOG_INFO);
 
-  CONSOLE_BRIDGE_logInform("Info1");
+  WELAB_INFO("Info1");
 
   console_bridge::useOutputHandler(&string_oh2);
   EXPECT_EQ(&string_oh2, console_bridge::getOutputHandler());
 
-  CONSOLE_BRIDGE_logInform("Info2");
+  WELAB_INFO("Info2");
 
   EXPECT_EQ(string_oh1.text_, "Info1");
   EXPECT_EQ(string_oh1.log_level_, console_bridge::LogLevel::CONSOLE_BRIDGE_LOG_INFO);
@@ -143,11 +143,11 @@ TEST(ConsoleTest, RestoreHandler) {
   console_bridge::useOutputHandler(&string_oh2);
   EXPECT_EQ(&string_oh2, console_bridge::getOutputHandler());
 
-  CONSOLE_BRIDGE_logInform("Info2");
+  WELAB_INFO("Info2");
 
   console_bridge::restorePreviousOutputHandler();
 
-  CONSOLE_BRIDGE_logInform("Info1");
+  WELAB_INFO("Info1");
 
   EXPECT_EQ(string_oh1.text_, "Info1");
   EXPECT_EQ(string_oh1.log_level_, console_bridge::LogLevel::CONSOLE_BRIDGE_LOG_INFO);
@@ -164,7 +164,7 @@ TEST(ConsoleTest, NoOutputHandler) {
   EXPECT_EQ(&string_oh, console_bridge::getOutputHandler());
   console_bridge::setLogLevel(console_bridge::LogLevel::CONSOLE_BRIDGE_LOG_DEBUG);
 
-  CONSOLE_BRIDGE_logDebug("Debug");
+  WELAB_DEBUG("Debug");
   EXPECT_EQ(string_oh.text_, "Debug");
   EXPECT_EQ(string_oh.log_level_, console_bridge::LogLevel::CONSOLE_BRIDGE_LOG_DEBUG);
 
@@ -174,12 +174,12 @@ TEST(ConsoleTest, NoOutputHandler) {
   console_bridge::noOutputHandler();
   EXPECT_EQ(nullptr, console_bridge::getOutputHandler());
 
-  CONSOLE_BRIDGE_logDebug("Debug");
+  WELAB_DEBUG("Debug");
   EXPECT_EQ(string_oh.text_, "");
   EXPECT_EQ(string_oh.log_level_, console_bridge::LogLevel::CONSOLE_BRIDGE_LOG_NONE);
 
   console_bridge::restorePreviousOutputHandler();
-  CONSOLE_BRIDGE_logDebug("Debug2");
+  WELAB_DEBUG("Debug2");
 
   EXPECT_EQ(string_oh.text_, "Debug2");
   EXPECT_EQ(string_oh.log_level_, console_bridge::LogLevel::CONSOLE_BRIDGE_LOG_DEBUG);
@@ -207,7 +207,7 @@ TEST(ConsoleTest, TestOutputHandlerFileBadFilename) {
   EXPECT_NO_THROW(handler.log("This should not crash", console_bridge::CONSOLE_BRIDGE_LOG_WARN, "file.cpp", 42));
 
   console_bridge::useOutputHandler(&handler);
-  EXPECT_NO_THROW(CONSOLE_BRIDGE_logError("This also should not crash, nor actually log anything"));
+  EXPECT_NO_THROW(WELAB_ERROR("This also should not crash, nor actually log anything"));
   // ~OutputHandlerFile() should not fail to close a non-existent file handle
 }
 
@@ -241,7 +241,7 @@ TEST_F(FileHandlerTest, TestInformDoesntLog) {
     const std::string text = "Some logging text";
     console_bridge::OutputHandlerFile handler(log_filename());
     console_bridge::useOutputHandler(&handler);
-    CONSOLE_BRIDGE_logInform("This shouldn't log to file because it's only inform");
+    WELAB_INFO("This shouldn't log to file because it's only inform");
   }
 
   const std::string result = getTextFromLogFile();
@@ -255,7 +255,7 @@ TEST_F(FileHandlerTest, TestErrorLogs) {
   {
     console_bridge::OutputHandlerFile handler(log_filename());
     console_bridge::useOutputHandler(&handler);
-    CONSOLE_BRIDGE_logError(text.c_str());
+    WELAB_ERROR(text.c_str());
   }
   const std::string expected_text = "Error:   " + text;
   const std::string result = getTextFromLogFile();
@@ -273,7 +273,7 @@ TEST_F(FileHandlerTest, TestInformLogsWithLogLevel) {
   {
     console_bridge::OutputHandlerFile handler(log_filename());
     console_bridge::useOutputHandler(&handler);
-    CONSOLE_BRIDGE_logInform(text.c_str());
+    WELAB_INFO(text.c_str());
   }
 
   const std::string expected_text = "Info:    " + text;

@@ -1,1 +1,2 @@
 add_subdirectory(macros)
+add_subdirectory(console_bridge)

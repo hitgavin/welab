@@ -128,11 +128,11 @@ static const char *LogLevelString[4] = {"Debug:   ", "Info:    ", "Warning: ", "
 void console_bridge::OutputHandlerSTD::log(const std::string &text, LogLevel level, const char *filename, int line) {
   if (level >= CONSOLE_BRIDGE_LOG_WARN) {
     if (level == CONSOLE_BRIDGE_LOG_WARN) {
-      std::cerr << WELAB_CONSOLE_COLOR_YELLOW << text << std::endl;
+      std::cerr << WELAB_CONSOLE_COLOR_YELLOW << LogLevelString[level] << text << std::endl;
       std::cerr << "         at line " << line << " in " << filename << WELAB_CONSOLE_COLOR_RESET << std::endl;
       std::cerr.flush();
     } else if (level == CONSOLE_BRIDGE_LOG_ERROR) {
-      std::cerr << WELAB_CONSOLE_COLOR_RED << text << std::endl;
+      std::cerr << WELAB_CONSOLE_COLOR_RED << LogLevelString[level] << text << std::endl;
       std::cerr << "         at line " << line << " in " << filename << WELAB_CONSOLE_COLOR_RESET << std::endl;
       std::cerr.flush();
     }

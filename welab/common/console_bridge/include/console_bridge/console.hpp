@@ -46,38 +46,38 @@
  * @file console.h
  * @defgroup logging Logging Macros
  * \{
- * @def CONSOLE_BRIDGE_logError(fmt, ...)
+ * @def WELAB_ERROR(fmt, ...)
  * @brief Log a formatted error string.
  * @remarks This macro takes the same arguments as 
  * <a href="http://www.cplusplus.com/reference/clibrary/cstdio/printf">printf</a>.
  * 
- * @def CONSOLE_BRIDGE_logWarn(fmt, ...)
+ * @def WELAB_WARN(fmt, ...)
  * @brief Log a formatted warning string.
  * @remarks This macro takes the same arguments as 
  * <a href="http://www.cplusplus.com/reference/clibrary/cstdio/printf">printf</a>.
  * 
- * @def CONSOLE_BRIDGE_logInform(fmt, ...)
+ * @def WELAB_INFO(fmt, ...)
  * @brief Log a formatted information string.
  * @remarks This macro takes the same arguments as 
  * <a href="http://www.cplusplus.com/reference/clibrary/cstdio/printf">printf</a>.
  * 
- * @def CONSOLE_BRIDGE_logDebug(fmt, ...)
+ * @def WELAB_DEBUG(fmt, ...)
  * @brief Log a formatted debugging string.
  * @remarks This macro takes the same arguments as 
  * <a href="http://www.cplusplus.com/reference/clibrary/cstdio/printf">printf</a>.
  * \}
  */
 
-#define CONSOLE_BRIDGE_logError(...) \
+#define WELAB_ERROR(...) \
   console_bridge::log(__FILE__, __LINE__, console_bridge::CONSOLE_BRIDGE_LOG_ERROR, __VA_ARGS__)
 
-#define CONSOLE_BRIDGE_logWarn(...) \
+#define WELAB_WARN(...) \
   console_bridge::log(__FILE__, __LINE__, console_bridge::CONSOLE_BRIDGE_LOG_WARN, __VA_ARGS__)
 
-#define CONSOLE_BRIDGE_logInform(...) \
+#define WELAB_INFO(...) \
   console_bridge::log(__FILE__, __LINE__, console_bridge::CONSOLE_BRIDGE_LOG_INFO, __VA_ARGS__)
 
-#define CONSOLE_BRIDGE_logDebug(...) \
+#define WELAB_DEBUG(...) \
   console_bridge::log(__FILE__, __LINE__, console_bridge::CONSOLE_BRIDGE_LOG_DEBUG, __VA_ARGS__)
 
 // clang-format on

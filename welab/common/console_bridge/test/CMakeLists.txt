@@ -25,3 +25,7 @@ foreach(gtest_src_file ${tests})
   
   set_tests_properties(${BINARY_NAME} PROPERTIES TIMEOUT 240)
 endforeach()
+
+add_executable(console_tutorial console_tutorial.cpp)
+add_dependencies(console_tutorial console_bridge)
+target_link_libraries(console_tutorial console_bridge)
