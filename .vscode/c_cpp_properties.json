@@ -3,14 +3,23 @@
     {
       "name": "Linux",
       "includePath": [
-        "${workspaceFolder}/**"
+        "${workspaceFolder}/**",
+        "/opt/Qt/5.15.2/gcc_64/include",
+        "/opt/Qt/5.15.2/gcc_64/include/QtCore",
+        "/opt/Qt/5.15.2/gcc_64/include/QtWidgets",
+        "/opt/Qt/5.15.2/gcc_64/include/QtGui"
       ],
       "defines": [],
       "compilerPath": "/usr/bin/g++",
       "cStandard": "c17",
       "cppStandard": "c++17",
       "intelliSenseMode": "${default}",
-      "compileCommands": "${workspaceFolder}/build/compile_commands.json"
+      "compileCommands": "${workspaceFolder}/build/compile_commands.json",
+      "browse": {
+        "path": [
+          "${workspaceFolder}/**"
+        ]
+      }
     },
     {
       "name": "Win32",

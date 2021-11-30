@@ -31,28 +31,3 @@
  *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
-
-#ifndef WELAB__COMMON__DECLARE_PRIVATE_HPP_
-#define WELAB__COMMON__DECLARE_PRIVATE_HPP_
-
-#include <memory>
-
-/**
- * @def WELAB_DECLARE_PRIVATE_NS
- * Macro that given a ns(namespace) and a Class declares pointer to implementation(pimpl)
- */
-#define WELAB_DECLARE_PRIVATE_NS(ns, Class)        \
-  typedef std::unique_ptr<ns::Class##Private> Imp; \
-  Imp d_ptr;                                       \
-  friend class ns::Class##Private
-
-/**
- * @def WELAB_DECLARE_PRIVATE
- * Macro that given a Class declares pointer to implementation(pimpl)
- */
-#define WELAB_DECLARE_PRIVATE(Class)           \
-  typedef std::unique_ptr<Class##Private> Imp; \
-  Imp d_ptr;                                   \
-  friend class Class##Private
-
-#endif

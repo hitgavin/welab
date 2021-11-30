@@ -32,27 +32,20 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#ifndef WELAB__COMMON__DECLARE_PRIVATE_HPP_
-#define WELAB__COMMON__DECLARE_PRIVATE_HPP_
+#ifndef WELAB__EXTENSION__EXTENSION_GLOBAL_HPP_
+#define WELAB__EXTENSION__EXTENSION_GLOBAL_HPP_
 
-#include <memory>
+#include <qglobal.h>
 
-/**
- * @def WELAB_DECLARE_PRIVATE_NS
- * Macro that given a ns(namespace) and a Class declares pointer to implementation(pimpl)
- */
-#define WELAB_DECLARE_PRIVATE_NS(ns, Class)        \
-  typedef std::unique_ptr<ns::Class##Private> Imp; \
-  Imp d_ptr;                                       \
-  friend class ns::Class##Private
+#include <QLoggingCategory>
 
-/**
- * @def WELAB_DECLARE_PRIVATE
- * Macro that given a Class declares pointer to implementation(pimpl)
- */
-#define WELAB_DECLARE_PRIVATE(Class)           \
-  typedef std::unique_ptr<Class##Private> Imp; \
-  Imp d_ptr;                                   \
-  friend class Class##Private
+// clang-format off
+#if defined(EXTENSION_LIBRARY)
+#  define EXTENSION_EXPORT Q_DECL_EXPORT
+#else 
+#  define EXTENSION_EXPORT Q_DECL_IMPORT
+#endif
+
+// clang-format on
 
 #endif

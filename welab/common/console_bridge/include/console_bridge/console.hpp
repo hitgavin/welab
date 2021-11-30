@@ -131,7 +131,10 @@ public:
   virtual void log(const std::string& text, LogLevel level, const char* filename, int line);
 };
 
+namespace internal {
 WELAB_CLASS_FORWARD(OutputHandlerFilePrivate);
+}  // namespace internal
+
 /**
  * @brief Implementation of OutputHandler that saves messages in a file.
  */
@@ -144,7 +147,7 @@ public:
   virtual void log(const std::string& text, LogLevel level, const char* filename, int line);
 
 private:
-  WELAB_DECLARE_PRIVATE(OutputHandlerFile);
+  WELAB_DECLARE_PRIVATE_NS(internal, OutputHandlerFile);
 };
 
 /**

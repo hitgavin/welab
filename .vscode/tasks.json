@@ -28,7 +28,7 @@
       // call cmake in build directory
       "label": "cmake",
       "type": "shell",
-      "command": "cmake",
+      "command": "/usr/local/bin/cmake",
       "args": [
         "-DCMAKE_BUILD_TYPE=${input:CMAKE_BUILD_TYPE}",
         // generate compile_commands.json for C++ IntelliSense

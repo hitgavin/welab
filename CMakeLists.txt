@@ -26,12 +26,6 @@ message(STATUS "${PROJECT_NAME} version ${WELAB_VERSION_FULL}")
 
 set(welab_cmake_dir ${PROJECT_SOURCE_DIR}/cmake CACHE PATH "Location of CMake scripts")
 
-if (NOT DEFINED BUILD_TESTING)
-  set(BUILD_TESTING OFF)
-endif()
-
-set(CMAKE_CXX_EXTENSIONS off)
-
 ########################################
 # Package Creation:
 include(${welab_cmake_dir}/welab_cpack.cmake)

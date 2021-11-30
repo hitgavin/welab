@@ -32,27 +32,23 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#ifndef WELAB__COMMON__DECLARE_PRIVATE_HPP_
-#define WELAB__COMMON__DECLARE_PRIVATE_HPP_
+#ifndef WELAB__EXTENSION__IPLUGIN_P_HPP_
+#define WELAB__EXTENSION__IPLUGIN_P_HPP_
 
-#include <memory>
+#include "iplugin.hpp"
 
-/**
- * @def WELAB_DECLARE_PRIVATE_NS
- * Macro that given a ns(namespace) and a Class declares pointer to implementation(pimpl)
- */
-#define WELAB_DECLARE_PRIVATE_NS(ns, Class)        \
-  typedef std::unique_ptr<ns::Class##Private> Imp; \
-  Imp d_ptr;                                       \
-  friend class ns::Class##Private
+namespace extension {
 
-/**
- * @def WELAB_DECLARE_PRIVATE
- * Macro that given a Class declares pointer to implementation(pimpl)
- */
-#define WELAB_DECLARE_PRIVATE(Class)           \
-  typedef std::unique_ptr<Class##Private> Imp; \
-  Imp d_ptr;                                   \
-  friend class Class##Private
+class PluginSpec;
+
+namespace internal {
+
+struct IPluginPrivate {
+  PluginSpec* plugin_spec;
+};
+
+}  // namespace internal
+
+}  // namespace extension
 
 #endif

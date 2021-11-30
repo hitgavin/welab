@@ -32,27 +32,53 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#ifndef WELAB__COMMON__DECLARE_PRIVATE_HPP_
-#define WELAB__COMMON__DECLARE_PRIVATE_HPP_
+#ifndef WELAB__EXTENSION__IPLUGIN_HPP_
+#define WELAB__EXTENSION__IPLUGIN_HPP_
 
-#include <memory>
+#include <QObject>
 
-/**
- * @def WELAB_DECLARE_PRIVATE_NS
- * Macro that given a ns(namespace) and a Class declares pointer to implementation(pimpl)
- */
-#define WELAB_DECLARE_PRIVATE_NS(ns, Class)        \
-  typedef std::unique_ptr<ns::Class##Private> Imp; \
-  Imp d_ptr;                                       \
-  friend class ns::Class##Private
+#include "extension_global.hpp"
+#include "macros/class_forward.hpp"
+#include "macros/declare_private.hpp"
 
-/**
- * @def WELAB_DECLARE_PRIVATE
- * Macro that given a Class declares pointer to implementation(pimpl)
- */
-#define WELAB_DECLARE_PRIVATE(Class)           \
-  typedef std::unique_ptr<Class##Private> Imp; \
-  Imp d_ptr;                                   \
-  friend class Class##Private
+namespace extension {
+
+namespace internal {
+class IPluginPrivate;
+class PluginSpecPrivate;
+}  // namespace internal
+
+class PluginManager;
+class PluginSpec;
+
+class EXTENSION_EXPORT IPlugin : public QObject {
+  Q_OBJECT
+public:
+  enum ShutdownFlag { SYNCHRONOUS_SHUTDOWN, ASYNCHRONOUS_SHUTDOWN };
+
+  IPlugin();
+  ~IPlugin() override;
+
+  virtual bool initialize(const QStringList& args, QString* error) = 0;
+  virtual void extensionsInitialized(){};
+  virtual bool delayedInitialize() { return false; }
+  virtual ShutdownFlag aboutToShutdown() { return SYNCHRONOUS_SHUTDOWN; }
+  virtual QObject* remoteCommand(const QStringList& options, const QString& working_dir, const QStringList& args) {
+    Q_UNUSED(options);
+    Q_UNUSED(working_dir);
+    Q_UNUSED(args);
+    return nullptr;
+  }
+
+  PluginSpec* pluginSpec() const;
+
+signals:
+  void asynchronousShutdownFinished();
+
+private:
+  WELAB_DECLARE_PRIVATE_NS(internal, IPlugin);
+};
+
+}  // namespace extension
 
 #endif

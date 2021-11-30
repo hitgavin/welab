@@ -31,15 +31,19 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR}"
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR}")
 
 set(LIB_NAME console_bridge)
+
 add_library(${LIB_NAME} src/console.cpp)
-welab_depends(${LIB_NAME} PUBLIC DEPENDS macros)
 
 target_include_directories(${LIB_NAME} PUBLIC
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 	$<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>
-	$<INSTALL_INTERFACE:include>)
-generate_export_header(${LIB_NAME}
-    EXPORT_MACRO_NAME CONSOLE_BRIDGE_DLLAPI)
+	$<INSTALL_INTERFACE:include>
+  )
+generate_export_header(${LIB_NAME} EXPORT_MACRO_NAME CONSOLE_BRIDGE_DLLAPI)
+
+welab_depends(${LIB_NAME} PUBLIC DEPENDS macros)
+target_link_libraries(${LIB_NAME} macros)
+
 
 install(TARGETS ${LIB_NAME}
   EXPORT ${LIB_NAME}-targets

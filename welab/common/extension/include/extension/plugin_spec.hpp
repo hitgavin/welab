@@ -32,27 +32,44 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#ifndef WELAB__COMMON__DECLARE_PRIVATE_HPP_
-#define WELAB__COMMON__DECLARE_PRIVATE_HPP_
+#ifndef WELAB__EXTENSION__PLUGIN_SPEC_HPP_
+#define WELAB__EXTENSION__PLUGIN_SPEC_HPP_
 
-#include <memory>
+#include <QHash>
+#include <QString>
+#include <QVector>
 
-/**
- * @def WELAB_DECLARE_PRIVATE_NS
- * Macro that given a ns(namespace) and a Class declares pointer to implementation(pimpl)
- */
-#define WELAB_DECLARE_PRIVATE_NS(ns, Class)        \
-  typedef std::unique_ptr<ns::Class##Private> Imp; \
-  Imp d_ptr;                                       \
-  friend class ns::Class##Private
+#include "extension_global.hpp"
 
-/**
- * @def WELAB_DECLARE_PRIVATE
- * Macro that given a Class declares pointer to implementation(pimpl)
- */
-#define WELAB_DECLARE_PRIVATE(Class)           \
-  typedef std::unique_ptr<Class##Private> Imp; \
-  Imp d_ptr;                                   \
-  friend class Class##Private
+QT_BEGIN_NAMESPACE
+class QRegularExpression;
+QT_END_NAMESPACE
+
+namespace extension {
+
+namespace internal {
+
+class OptionsParser;
+class PluginSpecPrivate;
+class PluginManagerPrivate;
+
+}  // namespace internal
+
+class IPlugin;
+
+struct EXTENSION_EXPORT PluginDependency {
+  enum Type { REQUIRED, OPTIONAL, TEST };
+
+  PluginDependency() : type(REQUIRED) {}
+
+  bool operator==(const PluginDependency &other) const;
+  QString toString() const;
+
+  QString name;
+  QString version;
+  Type type;
+};
+
+}  // namespace extension
 
 #endif
