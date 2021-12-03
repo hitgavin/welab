@@ -32,53 +32,59 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#ifndef WELAB__EXTENSION__IPLUGIN_HPP_
-#define WELAB__EXTENSION__IPLUGIN_HPP_
+#ifndef WELAB__UTILS__OS_SPECIFIC_ASPECTS_HPP_
+#define WELAB__UTILS__OS_SPECIFIC_ASPECTS_HPP_
 
-#include "extension_global.hpp"
-#include "macros/class_forward.hpp"
-#include "macros/declare_private.hpp"
+#include <QString>
 
-#include <QObject>
+#include <algorithm>
 
-namespace extension {
+#define WELAB_WIN_EXE_SUFFIX ".exe"
 
-namespace internal {
-class IPluginPrivate;
-class PluginSpecPrivate;
-}  // namespace internal
+namespace utils {
 
-class PluginManager;
-class PluginSpec;
+enum OsType { OS_TYPE_WINDOWS, OS_TYPE_LINUX, OS_TYPE_MAC, OS_TYPE_OTHER_UNIX, OS_TYPE_OTHER };
 
-class EXTENSION_EXPORT IPlugin : public QObject {
-  Q_OBJECT
-public:
-  enum ShutdownFlag { SYNCHRONOUS_SHUTDOWN, ASYNCHRONOUS_SHUTDOWN };
-
-  IPlugin();
-  ~IPlugin() override;
-
-  virtual bool initialize(const QStringList& args, QString* error) = 0;
-  virtual void extensionsInitialized(){};
-  virtual bool delayedInitialize() { return false; }
-  virtual ShutdownFlag aboutToShutdown() { return SYNCHRONOUS_SHUTDOWN; }
-  virtual QObject* remoteCommand(const QStringList& options, const QString& working_dir, const QStringList& args) {
-    Q_UNUSED(options);
-    Q_UNUSED(working_dir);
-    Q_UNUSED(args);
-    return nullptr;
+namespace os_specific_aspects {
+inline QString withExecutableSuffix(OsType os_type, const QString &executable) {
+  QString final_name = executable;
+  if (os_type == OS_TYPE_WINDOWS) {
+    final_name += QLatin1String(WELAB_WIN_EXE_SUFFIX);
   }
 
-  PluginSpec* pluginSpec() const;
+  return final_name;
+}
 
-signals:
-  void asynchronousShutdownFinished();
+inline Qt::CaseSensitivity fileNameCaseSensitivity(OsType os_type) {
+  return os_type == OS_TYPE_WINDOWS || os_type == OS_TYPE_MAC ? Qt::CaseInsensitive : Qt::CaseSensitive;
+}
 
-private:
-  WELAB_DECLARE_PRIVATE_NS(internal, IPlugin);
-};
+inline QChar pathListSeparator(OsType os_type) { return QLatin1Char(os_type == OS_TYPE_WINDOWS ? ';' : ':'); }
 
-}  // namespace extension
+inline Qt::KeyboardModifier controlModifier(OsType os_type) {
+  return os_type == OS_TYPE_MAC ? Qt::MetaModifier : Qt::ControlModifier;
+}
+
+inline QString pathWithNativeSeparators(OsType os_type, const QString &path_name) {
+  if (os_type == OS_TYPE_WINDOWS) {
+    const int pos = path_name.indexOf('/');
+    if (pos >= 0) {
+      QString n = path_name;
+      std::replace(std::begin(n) + pos, std::end(n), '/', '\\');
+      return n;
+    } else {
+      const int pos = path_name.indexOf('\\');
+      if (pos >= 0) {
+        QString n = path_name;
+        std::replace(std::begin(n) + pos, std::end(n), '\\', '/');
+        return n;
+      }
+    }
+  }
+}
+
+}  // namespace os_specific_aspects
+
+}  // namespace utils
 
 #endif

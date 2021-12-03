@@ -34,14 +34,14 @@
 
 #include "console_bridge/console.hpp"
 
+#include "macros/console_colors.hpp"
+
 #include <cstdarg>
 #include <cstdio>
 #include <iostream>
 #include <mutex>
 #include <string>
 #include <utility>
-
-#include "macros/console_colors.hpp"
 
 /// @cond IGNORE
 

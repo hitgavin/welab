@@ -1,7 +1,23 @@
 {
   "files.associations": {
     "condition_variable": "cpp",
-    "qloggingcategory": "cpp"
+    "qloggingcategory": "cpp",
+    "*.tcc": "cpp",
+    "*.ipp": "cpp",
+    "memory": "cpp",
+    "functional": "cpp",
+    "istream": "cpp",
+    "ostream": "cpp",
+    "streambuf": "cpp",
+    "typeindex": "cpp",
+    "valarray": "cpp",
+    "cholesky": "cpp",
+    "eigenvalues": "cpp",
+    "geometry": "cpp",
+    "householder": "cpp",
+    "jacobi": "cpp",
+    "qr": "cpp",
+    "svd": "cpp"
   },
   "editor.tokenColorCustomizations": {
     "textMateRules": [

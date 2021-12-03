@@ -35,11 +35,11 @@
 #ifndef WELAB__CONSOLE_BRIDGE__CONSOLE_HPP_
 #define WELAB__CONSOLE_BRIDGE__CONSOLE_HPP_
 
-#include <string>
-
 #include "./console_bridge_export.h"
 #include "macros/class_forward.hpp"
 #include "macros/declare_private.hpp"
+
+#include <string>
 
 // clang-format off
 /**

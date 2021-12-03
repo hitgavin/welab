@@ -32,53 +32,18 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#ifndef WELAB__EXTENSION__IPLUGIN_HPP_
-#define WELAB__EXTENSION__IPLUGIN_HPP_
+#ifndef WELAB__UTILS__UTILS_GLOBAL_HPP_
+#define WELAB__UTILS__UTILS_GLOBAL_HPP_
 
-#include "extension_global.hpp"
-#include "macros/class_forward.hpp"
-#include "macros/declare_private.hpp"
-
-#include <QObject>
-
-namespace extension {
-
-namespace internal {
-class IPluginPrivate;
-class PluginSpecPrivate;
-}  // namespace internal
-
-class PluginManager;
-class PluginSpec;
-
-class EXTENSION_EXPORT IPlugin : public QObject {
-  Q_OBJECT
-public:
-  enum ShutdownFlag { SYNCHRONOUS_SHUTDOWN, ASYNCHRONOUS_SHUTDOWN };
-
-  IPlugin();
-  ~IPlugin() override;
-
-  virtual bool initialize(const QStringList& args, QString* error) = 0;
-  virtual void extensionsInitialized(){};
-  virtual bool delayedInitialize() { return false; }
-  virtual ShutdownFlag aboutToShutdown() { return SYNCHRONOUS_SHUTDOWN; }
-  virtual QObject* remoteCommand(const QStringList& options, const QString& working_dir, const QStringList& args) {
-    Q_UNUSED(options);
-    Q_UNUSED(working_dir);
-    Q_UNUSED(args);
-    return nullptr;
-  }
-
-  PluginSpec* pluginSpec() const;
-
-signals:
-  void asynchronousShutdownFinished();
-
-private:
-  WELAB_DECLARE_PRIVATE_NS(internal, IPlugin);
-};
-
-}  // namespace extension
+#include <qglobal.h>
+// clang-format off
+#if defined(UTILS_LIBRARY)
+#  define UTILS_EXPORT Q_DECL_EXPORT
+#elif  defined(UTILS_STATIC_LIB)
+#  define UTILS_EXPORT
+#else 
+#  define UTILS_EXPORT Q_DECL_IMPORT
+#endif
+// clang-format on
 
 #endif

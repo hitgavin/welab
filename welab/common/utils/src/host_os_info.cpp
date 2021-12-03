@@ -32,53 +32,37 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#ifndef WELAB__EXTENSION__IPLUGIN_HPP_
-#define WELAB__EXTENSION__IPLUGIN_HPP_
+#include "utils/host_os_info.hpp"
 
-#include "extension_global.hpp"
-#include "macros/class_forward.hpp"
-#include "macros/declare_private.hpp"
+#include <QCoreApplication>
 
-#include <QObject>
-
-namespace extension {
-
-namespace internal {
-class IPluginPrivate;
-class PluginSpecPrivate;
-}  // namespace internal
-
-class PluginManager;
-class PluginSpec;
-
-class EXTENSION_EXPORT IPlugin : public QObject {
-  Q_OBJECT
-public:
-  enum ShutdownFlag { SYNCHRONOUS_SHUTDOWN, ASYNCHRONOUS_SHUTDOWN };
-
-  IPlugin();
-  ~IPlugin() override;
-
-  virtual bool initialize(const QStringList& args, QString* error) = 0;
-  virtual void extensionsInitialized(){};
-  virtual bool delayedInitialize() { return false; }
-  virtual ShutdownFlag aboutToShutdown() { return SYNCHRONOUS_SHUTDOWN; }
-  virtual QObject* remoteCommand(const QStringList& options, const QString& working_dir, const QStringList& args) {
-    Q_UNUSED(options);
-    Q_UNUSED(working_dir);
-    Q_UNUSED(args);
-    return nullptr;
-  }
-
-  PluginSpec* pluginSpec() const;
-
-signals:
-  void asynchronousShutdownFinished();
-
-private:
-  WELAB_DECLARE_PRIVATE_NS(internal, IPlugin);
-};
-
-}  // namespace extension
-
+#if !defined(QT_NO_OPENGL) && defined(QT_GUI_LIB)
+#include <QOpenGLContext>
 #endif
+
+#ifdef Q_OS_WIN
+#include <qt_windows.h>
+#endif
+
+#ifdef Q_OS_MACOS
+#include <sys/sysctl.h>
+#endif
+
+using namespace utils;
+
+Qt::CaseSensitivity HostOsInfo::override_file_name_case_sensitivity_ = Qt::CaseSensitive;
+bool HostOsInfo::use_override_file_name_case_sensitivity_ = false;
+
+#ifdef Q_OS_WIN
+static WORD hostProcessorArchitecture() {
+  SYSTEM_INFO info;
+  GetNativeSystemInfo(&info);
+  return info.wProcessorArchitecture;
+}
+#endif
+
+HostOsInfo::HostArchitecture HostOsInfo::hostArchitecture() {
+#ifdef Q_OS_WIN
+#else
+#endif
+}
