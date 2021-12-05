@@ -55,7 +55,7 @@ namespace internal {
 
 class EXTENSION_EXPORT PluginSpecPrivate : public QObject {
   Q_OBJECT
-public:
+ public:
   PluginSpecPrivate(std::shared_ptr<PluginSpec> spec);
 
   bool read(const QString &file_name);
@@ -71,7 +71,7 @@ public:
   void setEnabledBySettings(bool value);
   void setEnabledByDefault(bool value);
   void setForceEnabled(bool value);
-  bool setForceDisabled(bool value);
+  void setForceDisabled(bool value);
 
   QVector<std::shared_ptr<PluginSpec>> enableDependenciesIndirectly();
   bool readMetaData(const QJsonObject &plugin_meta_data);
@@ -113,7 +113,7 @@ public:
   bool has_error = false;
   QString error_string;
 
-private:
+ private:
   std::weak_ptr<PluginSpec> q_ptr;
 
   bool reportError(const QString &error);

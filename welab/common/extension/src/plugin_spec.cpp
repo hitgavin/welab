@@ -38,6 +38,8 @@
 #include "extension/iplugin.hpp"
 #include "extension/iplugin_p.hpp"
 
+#include "utils/host_os_info.hpp"
+
 #include <QCoreApplication>
 #include <QDebug>
 #include <QDir>
@@ -208,7 +210,104 @@ const char ARGUMENT_DESCRIPTION[] = "Description";
 }  // namespace
 
 PluginSpecPrivate::PluginSpecPrivate(std::shared_ptr<PluginSpec> spec) : q_ptr(spec) {
-  if () {
+  if (utils::HostOsInfo::isMacHost()) {
     loader.setLoadHints(QLibrary::ExportExternalSymbolsHint);
   }
+}
+
+bool PluginSpecPrivate::read(const QString &file_name) {
+  qCDebug(pluginLog) << "\nReading meta data of " << file_name;
+  name = version = compat_version = vendor = copyright = license = description = url = category = location = QString();
+
+  state = PluginSpec::INVALID;
+  has_error = false;
+  error_string.clear();
+  dependencies.clear();
+  meta_data = QJsonObject();
+  QFileInfo file_info(file_name);
+  location = file_info.absolutePath();
+  file_path = file_info.absoluteFilePath();
+  loader.setFileName(file_path);
+  if (loader.fileName().isEmpty()) {
+    qCDebug(pluginLog) << "Cannot open file";
+    return false;
+  }
+
+  if (!readMetaData(loader.metaData())) {
+    return false;
+  }
+
+  state = PluginSpec::READ;
+  return true;
+}
+
+void PluginSpecPrivate::setEnabledBySettings(bool value) { enabled_by_settings = value; }
+
+void PluginSpecPrivate::setEnabledByDefault(bool value) { enabled_by_default = value; }
+
+void PluginSpecPrivate::setForceEnabled(bool value) {
+  force_enabled = value;
+  if (value) {
+    force_disabled = false;
+  }
+}
+
+void PluginSpecPrivate::setForceDisabled(bool value) {
+  if (value) {
+    force_disabled = false;
+  }
+  force_disabled = value;
+}
+
+bool PluginSpecPrivate::reportError(const QString &error) {
+  error_string = error;
+  has_error = true;
+  return true;
+}
+
+static inline QString msgValueMissing(const char *key) {
+  return QCoreApplication::translate("PluginSpec", "\"%1\" is missing").arg(QLatin1String(key));
+}
+
+static inline QString msgValueIsNotAString(const char *key) {
+  return QCoreApplication::translate("PluginSpec", "Value for key \"%1\" is not a string").arg(QLatin1String(key));
+}
+
+static inline QString msgValueIsNotABool(const char *key) {
+  return QCoreApplication::translate("PluginSpec", "Value for key \"%1\" is not a bool").arg(QLatin1String(key));
+}
+
+static inline QString msgValueIsNotAObjectArray(const char *key) {
+  return QCoreApplication::translate("PluginSpec", "Value for key \"%1\" is not an array of objects")
+      .arg(QLatin1String(key));
+}
+
+static inline QString msgValueIsNotAMultilineString(const char *key) {
+  return QCoreApplication::translate("PluginSpec", "Value for key \"%1\" is not a string and not an array of strings")
+      .arg(QLatin1String(key));
+}
+
+static inline QString msgInvalidFormat(const char *key, const QString &content) {
+  return QCoreApplication::translate("PluginSpec", "Value \"%2\" for key \"%1\" has invalid format")
+      .arg(QLatin1String(key), content);
+}
+
+bool PluginSpecPrivate::readMetaData(const QJsonObject &plugin_meta_data) {
+  qCDebug(pluginLog) << "MetaData:" << QJsonDocument(plugin_meta_data).toJson();
+  QJsonValue value;
+  value = plugin_meta_data.value(QLatin1String("IID"));
+  if (!value.isString()) {
+    qCDebug(pluginLog) << "Not a plugin (no string IID found)";
+    return false;
+  }
+  if (value.toString() != PluginManager::pluginIID()) {
+    qCDebug(pluginLog) << "Plugin ignored (IID does not match)";
+    return false;
+  }
+
+  value = plugin_meta_data.value(QLatin1String(PLUGIN_METADATA));
+  if (!value.isObject()) {
+    return reportError(tr("Plugin meta data not found"));
+  }
+  meta_data = value.toObject();
 }

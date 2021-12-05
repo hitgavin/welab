@@ -48,4 +48,6 @@
 
 // clang-format on
 
+Q_DECLARE_LOGGING_CATEGORY(pluginLog)
+
 #endif

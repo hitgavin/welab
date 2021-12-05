@@ -72,15 +72,17 @@ inline QString pathWithNativeSeparators(OsType os_type, const QString &path_name
       QString n = path_name;
       std::replace(std::begin(n) + pos, std::end(n), '/', '\\');
       return n;
-    } else {
-      const int pos = path_name.indexOf('\\');
-      if (pos >= 0) {
-        QString n = path_name;
-        std::replace(std::begin(n) + pos, std::end(n), '\\', '/');
-        return n;
-      }
+    }
+  } else {
+    const int pos = path_name.indexOf('\\');
+    if (pos >= 0) {
+      QString n = path_name;
+      std::replace(std::begin(n) + pos, std::end(n), '\\', '/');
+      return n;
     }
   }
+
+  return path_name;
 }
 
 }  // namespace os_specific_aspects
