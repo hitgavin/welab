@@ -32,54 +32,26 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#ifndef WELAB__EXTENSION__IPLUGIN_HPP_
-#define WELAB__EXTENSION__IPLUGIN_HPP_
+#ifndef WELAB__UTILS__STRING_UTILS_HPP_
+#define WELAB__UTILS__STRING_UITLS_HPP_
 
-#include "extension_global.hpp"
-#include "macros/class_forward.hpp"
-#include "macros/declare_private.hpp"
+#include "porting.hpp"
+#include "utils_global.hpp"
 
-#include <QObject>
+#include <QList>
+#include <QString>
 
-namespace extension {
+#include <functional>
 
-namespace internal {
-class IPluginPrivate;
-class PluginSpecPrivate;
-}  // namespace internal
+QT_BEGIN_NAMESPACE
+class QJsonValue;
+QT_END_NAMESPACE
 
-class PluginManager;
-class PluginSpec;
-
-class EXTENSION_EXPORT IPlugin : public QObject {
-  Q_OBJECT
-public:
-  enum ShutdownFlag { SYNCHRONOUS_SHUTDOWN, ASYNCHRONOUS_SHUTDOWN };
-
-  IPlugin();
-  ~IPlugin() override;
-
-  virtual bool initialize(const QStringList& args, QString* error) = 0;
-  virtual void extensionsInitialized(){};
-  virtual bool delayedInitialize() { return false; }
-  virtual ShutdownFlag aboutToShutdown() { return SYNCHRONOUS_SHUTDOWN; }
-  virtual QObject* remoteCommand(const QStringList& options, const QString& working_dir, const QStringList& args) {
-    Q_UNUSED(options);
-    Q_UNUSED(working_dir);
-    Q_UNUSED(args);
-    return nullptr;
-  }
-
-  PluginSpec* pluginSpec() const;
-
-signals:
-  void asynchronousShutdownFinished();
-
-private:
-  WELAB_DECLARE_PRIVATE_NS(internal, IPlugin);
-  friend class internal::PluginSpecPrivate;
-};
-
-}  // namespace extension
+namespace utils {
+/**
+ * @brief Transform string array stored in QJsonArray to a QString object
+ */
+UTILS_EXPORT bool readMultiLineString(const QJsonValue &value, QString *out);
+}  // namespace utils
 
 #endif

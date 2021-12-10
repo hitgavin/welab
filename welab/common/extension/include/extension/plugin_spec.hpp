@@ -169,11 +169,11 @@ public:
   bool provides(const QString &plugin_name, const QString &version) const;
 
   // dependency specs, valid after 'RESOLVED' state is reached
-  QHash<PluginDependency, std::shared_ptr<PluginSpec>> dependencySpecs() const;
-  bool requiresAny(const QSet<std::shared_ptr<PluginSpec>> &plugins) const;
+  QHash<PluginDependency, PluginSpec *> dependencySpecs() const;
+  bool requiresAny(const QSet<PluginSpec *> &plugins) const;
 
   // linked plugin instance, valid after 'LOADED' state is reached
-  std::shared_ptr<IPlugin> plugin() const;
+  IPlugin *plugin() const;
 
   // State
   State state() const;
@@ -182,7 +182,7 @@ public:
 
   void setEnabledBySettings(bool value);
 
-  static std::shared_ptr<PluginSpec> read(const QString &file_path);
+  static PluginSpec *read(const QString &file_path);
 
 private:
   PluginSpec();

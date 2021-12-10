@@ -32,54 +32,57 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#ifndef WELAB__EXTENSION__IPLUGIN_HPP_
-#define WELAB__EXTENSION__IPLUGIN_HPP_
+#ifndef WELAB__UTILS__WL_SETTINGS_HPP_
+#define WELAB__UTILS__WL_SETTINGS_HPP_
 
-#include "extension_global.hpp"
-#include "macros/class_forward.hpp"
-#include "macros/declare_private.hpp"
+#include "utils/utils_global.hpp"
 
-#include <QObject>
+#include <QSettings>
 
-namespace extension {
-
-namespace internal {
-class IPluginPrivate;
-class PluginSpecPrivate;
-}  // namespace internal
-
-class PluginManager;
-class PluginSpec;
-
-class EXTENSION_EXPORT IPlugin : public QObject {
-  Q_OBJECT
+namespace utils {
+class UTILS_EXPORT WlSettings : public QSettings {
 public:
-  enum ShutdownFlag { SYNCHRONOUS_SHUTDOWN, ASYNCHRONOUS_SHUTDOWN };
+  using QSettings::QSettings;
 
-  IPlugin();
-  ~IPlugin() override;
+  template <typename T>
+  void setValueWithDefault(const QString &key, const T &val, const T &default_value);
+  template <typename T>
+  void setValueWithDefault(const QString &key, const T &val);
 
-  virtual bool initialize(const QStringList& args, QString* error) = 0;
-  virtual void extensionsInitialized(){};
-  virtual bool delayedInitialize() { return false; }
-  virtual ShutdownFlag aboutToShutdown() { return SYNCHRONOUS_SHUTDOWN; }
-  virtual QObject* remoteCommand(const QStringList& options, const QString& working_dir, const QStringList& args) {
-    Q_UNUSED(options);
-    Q_UNUSED(working_dir);
-    Q_UNUSED(args);
-    return nullptr;
-  }
+  template <typename T>
+  static void setValueWithDefault(QSettings *settings, const QString &key, const T &val, const T &default_value);
 
-  PluginSpec* pluginSpec() const;
-
-signals:
-  void asynchronousShutdownFinished();
-
-private:
-  WELAB_DECLARE_PRIVATE_NS(internal, IPlugin);
-  friend class internal::PluginSpecPrivate;
+  template <typename T>
+  static void setValueWithDefault(QSettings *settings, const QString &key, const T &val);
 };
 
-}  // namespace extension
+template <typename T>
+void WlSettings::setValueWithDefault(const QString &key, const T &val, const T &defalut_value) {
+  setValueWithDefault(this, key, val, defalut_value);
+}
+
+template <typename T>
+void WlSettings::setValueWithDefault(const QString &key, const T &val) {
+  setValueWithDefault(this, key, val);
+}
+
+template <typename T>
+void WlSettings::setValueWithDefault(QSettings *settings, const QString &key, const T &val, const T &default_value) {
+  if (val == default_value) {
+    settings->remove(key);
+  } else {
+    settings->setValue(key, QVariant::fromValue(val));
+  }
+}
+
+template <typename T>
+void WlSettings::setValueWithDefault(QSettings *settings, const QString &key, const T &val) {
+  if (val == T()) {
+    settings->remove(key);
+  } else {
+    settings->setValue(key, QVariant::fromValue(val));
+  }
+}
+}  // namespace utils
 
 #endif

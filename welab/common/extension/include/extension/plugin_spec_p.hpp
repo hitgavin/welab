@@ -55,12 +55,12 @@ namespace internal {
 
 class EXTENSION_EXPORT PluginSpecPrivate : public QObject {
   Q_OBJECT
- public:
-  PluginSpecPrivate(std::shared_ptr<PluginSpec> spec);
+public:
+  PluginSpecPrivate(PluginSpec *spec);
 
   bool read(const QString &file_name);
-  bool provides(const QString &plugin_name, const QString &version);
-  bool resolveDependencies(const QVector<std::shared_ptr<PluginSpec>> &specs);
+  bool provides(const QString &plugin_name, const QString &version) const;
+  bool resolveDependencies(const QVector<PluginSpec *> &specs);
   bool loadLibrary();
   bool initializePlugin();
   bool initializeExtensions();
@@ -73,11 +73,11 @@ class EXTENSION_EXPORT PluginSpecPrivate : public QObject {
   void setForceEnabled(bool value);
   void setForceDisabled(bool value);
 
-  QVector<std::shared_ptr<PluginSpec>> enableDependenciesIndirectly();
+  QVector<PluginSpec *> enableDependenciesIndirectly();
   bool readMetaData(const QJsonObject &plugin_meta_data);
 
   static bool isValidVerion(const QString &version);
-  static int versionCompare(const QString &version1, const QString version2);
+  static int versionCompare(const QString &version1, const QString &version2);
 
   QPluginLoader loader;
 
@@ -105,16 +105,16 @@ class EXTENSION_EXPORT PluginSpecPrivate : public QObject {
   QString file_path;
   QStringList arguments;
 
-  QHash<PluginDependency, std::shared_ptr<PluginSpec>> dependency_specs;
+  QHash<PluginDependency, PluginSpec *> dependency_specs;
   PluginSpec::PluginArgumentDescriptions argument_descriptions;
-  std::shared_ptr<IPlugin> plugin = nullptr;
+  IPlugin *plugin = nullptr;
 
   PluginSpec::State state = PluginSpec::INVALID;
   bool has_error = false;
   QString error_string;
 
- private:
-  std::weak_ptr<PluginSpec> q_ptr;
+private:
+  PluginSpec *q_ptr;
 
   bool reportError(const QString &error);
   static const QRegularExpression &versionRegExp();

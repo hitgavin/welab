@@ -31,55 +31,24 @@
  *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
+#ifndef WELAB__UTILS__WL_ASSERT_HPP_
+#define WELAB__UTILS__WL_ASSERT_HPP_
 
-#ifndef WELAB__EXTENSION__IPLUGIN_HPP_
-#define WELAB__EXTENSION__IPLUGIN_HPP_
+#include "utils_global.hpp"
 
-#include "extension_global.hpp"
-#include "macros/class_forward.hpp"
-#include "macros/declare_private.hpp"
+namespace utils {
+UTILS_EXPORT void writeAssertLocation(const char *msg);
+UTILS_EXPORT void dumpBacktrace(int max_depth);
+}  // namespace utils
 
-#include <QObject>
+#define WL_ASSERT_STRINGIFY_HELPER(x) #x
+#define WL_ASSERT_STRINGIFY(x) WL_ASSERT_STRINGIFY_HELPER(x)
+// clang-format off
+#define WL_ASSERT_STRING(cond) \
+  ::utils::writeAssertLocation("\"" cond"\" in file " __FILE__ ", line " WL_ASSERT_STRINGIFY(__LINE__))
 
-namespace extension {
-
-namespace internal {
-class IPluginPrivate;
-class PluginSpecPrivate;
-}  // namespace internal
-
-class PluginManager;
-class PluginSpec;
-
-class EXTENSION_EXPORT IPlugin : public QObject {
-  Q_OBJECT
-public:
-  enum ShutdownFlag { SYNCHRONOUS_SHUTDOWN, ASYNCHRONOUS_SHUTDOWN };
-
-  IPlugin();
-  ~IPlugin() override;
-
-  virtual bool initialize(const QStringList& args, QString* error) = 0;
-  virtual void extensionsInitialized(){};
-  virtual bool delayedInitialize() { return false; }
-  virtual ShutdownFlag aboutToShutdown() { return SYNCHRONOUS_SHUTDOWN; }
-  virtual QObject* remoteCommand(const QStringList& options, const QString& working_dir, const QStringList& args) {
-    Q_UNUSED(options);
-    Q_UNUSED(working_dir);
-    Q_UNUSED(args);
-    return nullptr;
-  }
-
-  PluginSpec* pluginSpec() const;
-
-signals:
-  void asynchronousShutdownFinished();
-
-private:
-  WELAB_DECLARE_PRIVATE_NS(internal, IPlugin);
-  friend class internal::PluginSpecPrivate;
-};
-
-}  // namespace extension
-
+#define WL_ASSERT(cond, action) if (Q_LIKELY(cond)) {} else { WL_ASSERT_STRING(#cond); action; } do {} while(0)
+#define WL_CHECK(cond) if (Q_LIKELY(cond)) {} else { WL_ASSERT_STRING(#cond); } do {} while(0)
+#define WL_GUARD(cond) ((Q_LIKELY(cond)) ? true : (WL_ASSERT_STRING(#cond), false))
+// clang-format on
 #endif

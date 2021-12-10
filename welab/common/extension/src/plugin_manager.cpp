@@ -32,54 +32,59 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#ifndef WELAB__EXTENSION__IPLUGIN_HPP_
-#define WELAB__EXTENSION__IPLUGIN_HPP_
+#include "extension/plugin_manager.hpp"
+#include "extension/plugin_manager_p.hpp"
 
-#include "extension_global.hpp"
-#include "macros/class_forward.hpp"
-#include "macros/declare_private.hpp"
+#include "utils/host_os_info.hpp"
+#include "utils/wl_assert.hpp"
 
-#include <QObject>
+#include <QSysInfo>
+
+#include <functional>
+#include <memory>
+
+Q_LOGGING_CATEGORY(pluginLog, "wl.extension", QtWarningMsg)
+
+const char C_IGNORED_PLUGIINS[] = "Plugins/Ignored";
+const char C_FORCEENABLED_PLUGINS[] = "Plugins/ForceEnabled";
+const int DELAYED_INITIALIZE_INTERVAL = 20;  // ms
+
+using namespace utils;
 
 namespace extension {
+using namespace internal;
 
-namespace internal {
-class IPluginPrivate;
-class PluginSpecPrivate;
-}  // namespace internal
+static std::unique_ptr<internal::PluginManagerPrivate> d = nullptr;
+static PluginManager *object = nullptr;
 
-class PluginManager;
-class PluginSpec;
+PluginManager *PluginManager::instance() { return object; }
 
-class EXTENSION_EXPORT IPlugin : public QObject {
-  Q_OBJECT
-public:
-  enum ShutdownFlag { SYNCHRONOUS_SHUTDOWN, ASYNCHRONOUS_SHUTDOWN };
+PluginManager::PluginManager() {
+  object = this;
+  d = std::make_unique<PluginManagerPrivate>(this);
+}
 
-  IPlugin();
-  ~IPlugin() override;
+PluginManager::~PluginManager() {}
 
-  virtual bool initialize(const QStringList& args, QString* error) = 0;
-  virtual void extensionsInitialized(){};
-  virtual bool delayedInitialize() { return false; }
-  virtual ShutdownFlag aboutToShutdown() { return SYNCHRONOUS_SHUTDOWN; }
-  virtual QObject* remoteCommand(const QStringList& options, const QString& working_dir, const QStringList& args) {
-    Q_UNUSED(options);
-    Q_UNUSED(working_dir);
-    Q_UNUSED(args);
-    return nullptr;
+QString PluginManager::pluginIID() { return QString(""); }
+
+void PluginManager::setPluginIID(const QString &) {}
+
+static inline QString getPlatformName() {
+  if (HostOsInfo::isMacHost()) {
+    return QLatin1String("OS X");
+  } else if (HostOsInfo::isAnyUnixHost()) {
+    return QLatin1String(HostOsInfo::isLinuxHost() ? "Linux" : "Unix");
+  } else if (HostOsInfo::isWindowsHost()) {
+    return QLatin1String("Windows");
   }
 
-  PluginSpec* pluginSpec() const;
+  return QLatin1String("Unknown");
+}
 
-signals:
-  void asynchronousShutdownFinished();
-
-private:
-  WELAB_DECLARE_PRIVATE_NS(internal, IPlugin);
-  friend class internal::PluginSpecPrivate;
-};
+QString PluginManager::platformName() {
+  static const QString result = getPlatformName() + " (" + QSysInfo::prettyProductName() + ')';
+  return result;
+}
 
 }  // namespace extension
-
-#endif

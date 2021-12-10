@@ -32,54 +32,60 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#ifndef WELAB__EXTENSION__IPLUGIN_HPP_
-#define WELAB__EXTENSION__IPLUGIN_HPP_
+#ifndef WELAB__EXTENSION__PLUGIN_MANAGER_P_HPP_
+#define WELAB__EXTENSION__PLUGIN_MANAGER_P_HPP_
 
-#include "extension_global.hpp"
-#include "macros/class_forward.hpp"
-#include "macros/declare_private.hpp"
+#include "extension/plugin_spec.hpp"
+#include "extension/plugin_manager.hpp"
 
+#include <QElapsedTimer>
+#include <QMutex>
 #include <QObject>
+#include <QReadWriteLock>
+#include <QScopedPointer>
+#include <QSet>
+#include <QStringList>
+#include <QWaitCondition>
+
+#include <queue>
+
+QT_BEGIN_NAMESPACE
+class QTime;
+class QTimer;
+class QEventLoop;
+QT_END_NAMESPACE
 
 namespace extension {
+class PluginManager;
 
 namespace internal {
-class IPluginPrivate;
 class PluginSpecPrivate;
-}  // namespace internal
 
-class PluginManager;
-class PluginSpec;
-
-class EXTENSION_EXPORT IPlugin : public QObject {
+class EXTENSION_EXPORT PluginManagerPrivate : public QObject {
   Q_OBJECT
 public:
-  enum ShutdownFlag { SYNCHRONOUS_SHUTDOWN, ASYNCHRONOUS_SHUTDOWN };
+  PluginManagerPrivate(PluginManager *plugin_manager);
+  ~PluginManagerPrivate() override;
+  // Object pool operations
 
-  IPlugin();
-  ~IPlugin() override;
-
-  virtual bool initialize(const QStringList& args, QString* error) = 0;
-  virtual void extensionsInitialized(){};
-  virtual bool delayedInitialize() { return false; }
-  virtual ShutdownFlag aboutToShutdown() { return SYNCHRONOUS_SHUTDOWN; }
-  virtual QObject* remoteCommand(const QStringList& options, const QString& working_dir, const QStringList& args) {
-    Q_UNUSED(options);
-    Q_UNUSED(working_dir);
-    Q_UNUSED(args);
-    return nullptr;
-  }
-
-  PluginSpec* pluginSpec() const;
-
-signals:
-  void asynchronousShutdownFinished();
-
-private:
-  WELAB_DECLARE_PRIVATE_NS(internal, IPlugin);
-  friend class internal::PluginSpecPrivate;
+  // Plugin operations
+  void checkForProblematicPlugins();
+  void loadPlugins();
+  void shutdown();
+  void setPluginPaths(const QStringList &paths);
+  const QVector<extension::PluginSpec *> loadQueue();
+  void loadPlugin(PluginSpec *spec, PluginSpec::State dest_state);
+  void resolveDependendies();
+  void enableDependenciesIndirectly();
+  void initProfiling();
+  void profilingSummary() const;
+  void profilingReport(const char *what, const PluginSpec *spec = nullptr);
+  void setSettings(utils::WlSettings *settings);
+  void setGlobalSettings(utils::WlSettings *settings);
+  void readSettings();
+  void writeSettings();
 };
-
+}  // namespace internal
 }  // namespace extension
 
 #endif

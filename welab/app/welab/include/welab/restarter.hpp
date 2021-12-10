@@ -32,54 +32,42 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#ifndef WELAB__EXTENSION__IPLUGIN_HPP_
-#define WELAB__EXTENSION__IPLUGIN_HPP_
+#ifndef WELAB__WELAB__RESTART_HPP_
+#define WELAB__WELAB__RESTART_HPP_
 
-#include "extension_global.hpp"
-#include "macros/class_forward.hpp"
-#include "macros/declare_private.hpp"
+#include <QApplication>
+#include <QDir>
+#include <QProcess>
+#include <QString>
+#include <QStringList>
 
-#include <QObject>
+#include <qglobal.h>
 
-namespace extension {
-
-namespace internal {
-class IPluginPrivate;
-class PluginSpecPrivate;
-}  // namespace internal
-
-class PluginManager;
-class PluginSpec;
-
-class EXTENSION_EXPORT IPlugin : public QObject {
-  Q_OBJECT
+class Restarter {
 public:
-  enum ShutdownFlag { SYNCHRONOUS_SHUTDOWN, ASYNCHRONOUS_SHUTDOWN };
-
-  IPlugin();
-  ~IPlugin() override;
-
-  virtual bool initialize(const QStringList& args, QString* error) = 0;
-  virtual void extensionsInitialized(){};
-  virtual bool delayedInitialize() { return false; }
-  virtual ShutdownFlag aboutToShutdown() { return SYNCHRONOUS_SHUTDOWN; }
-  virtual QObject* remoteCommand(const QStringList& options, const QString& working_dir, const QStringList& args) {
-    Q_UNUSED(options);
-    Q_UNUSED(working_dir);
-    Q_UNUSED(args);
-    return nullptr;
+  Restarter(int argc, char **argv) {
+    Q_UNUSED(argc);
+    executable_ = QString::fromLocal8Bit(argv[0]);
+    working_path_ = QDir::currentPath();
   }
 
-  PluginSpec* pluginSpec() const;
+  void setArguments(const QStringList &args) { args_ = args; }
 
-signals:
-  void asynchronousShutdownFinished();
+  QString executable() const { return executable_; }
+  QStringList arguments() const { return args_; }
+  QString workingPath() const { return working_path_; }
+
+  int restartOrExit(int exit_code) { return qApp->property("restart").toBool() ? restart(exit_code) : exit_code; }
+
+  int restart(int exit_code) {
+    QProcess::startDetached(executable_, args_, working_path_);
+    return exit_code;
+  }
 
 private:
-  WELAB_DECLARE_PRIVATE_NS(internal, IPlugin);
-  friend class internal::PluginSpecPrivate;
+  QString executable_;
+  QStringList args_;
+  QString working_path_;
 };
-
-}  // namespace extension
 
 #endif

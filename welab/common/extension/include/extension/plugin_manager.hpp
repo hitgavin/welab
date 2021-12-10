@@ -32,54 +32,71 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#ifndef WELAB__EXTENSION__IPLUGIN_HPP_
-#define WELAB__EXTENSION__IPLUGIN_HPP_
+#ifndef WELAB__EXTENSION__PLUGIN_MANAGER_HPP_
+#define WELAB__EXTENSION__PLUGIN_MANAGER_HPP_
 
-#include "extension_global.hpp"
-#include "macros/class_forward.hpp"
-#include "macros/declare_private.hpp"
+#include "extension/extension_global.hpp"
+
+#include "utils/wl_settings.hpp"
 
 #include <QObject>
+#include <QStringList>
+
+QT_BEGIN_NAMESPACE
+class QTextStream;
+QT_END_NAMESPACE
 
 namespace extension {
 
-namespace internal {
-class IPluginPrivate;
-class PluginSpecPrivate;
-}  // namespace internal
-
-class PluginManager;
+class IPlugin;
 class PluginSpec;
 
-class EXTENSION_EXPORT IPlugin : public QObject {
+namespace internal {
+class PluginManagerPrivate;
+}  // namespace internal
+
+class EXTENSION_EXPORT PluginManager : public QObject {
   Q_OBJECT
 public:
-  enum ShutdownFlag { SYNCHRONOUS_SHUTDOWN, ASYNCHRONOUS_SHUTDOWN };
+  static PluginManager *instance();
 
-  IPlugin();
-  ~IPlugin() override;
+  PluginManager();
+  ~PluginManager() override;
 
-  virtual bool initialize(const QStringList& args, QString* error) = 0;
-  virtual void extensionsInitialized(){};
-  virtual bool delayedInitialize() { return false; }
-  virtual ShutdownFlag aboutToShutdown() { return SYNCHRONOUS_SHUTDOWN; }
-  virtual QObject* remoteCommand(const QStringList& options, const QString& working_dir, const QStringList& args) {
-    Q_UNUSED(options);
-    Q_UNUSED(working_dir);
-    Q_UNUSED(args);
-    return nullptr;
-  }
+  // Plugin operations
+  static QVector<PluginSpec *> loadQueue();
+  static void loadPlugins();
+  static QStringList pluginPaths();
+  static void setPluginPaths(const QStringList &paths);
+  static QString pluginIID();
+  static void setPluginIID(const QString &iid);
+  static const QVector<PluginSpec *> plugins();
+  static bool hasError();
+  static const QStringList allErrors();
+  static const QSet<PluginSpec *> pluginsRequiringPlugin(PluginSpec *spec);
+  static const QSet<PluginSpec *> pluginsRequiredByPlugin(PluginSpec *spec);
+  static void checkForProblematicPlugins();
 
-  PluginSpec* pluginSpec() const;
+  // Settings
+  static void setSettings(utils::WlSettings *settings);
+  static utils::WlSettings *settings();
+  static void setGlobalSettings(utils::WlSettings *settings);
+  static utils::WlSettings *globalSettings();
+  static void writeSettings();
 
-signals:
-  void asynchronousShutdownFinished();
+  // command line arguments
+  static QStringList arguments();
+  static QStringList argumentsForRestart();
+  static bool parseOptions(const QStringList &args, const QMap<QString, bool> &app_options,
+                           QMap<QString, QString> *found_app_options, QString *error_string);
+  static void formatOptions(QTextStream &str, int option_indentation, int description_identation);
+  static void formatPluginOptions(QTextStream &str, int option_indentation, int description_identation);
+  static void formatPluginVersions(QTextStream &str);
 
-private:
-  WELAB_DECLARE_PRIVATE_NS(internal, IPlugin);
-  friend class internal::PluginSpecPrivate;
+  static QString serializedArguments();
+
+  static QString platformName();
 };
-
 }  // namespace extension
 
 #endif

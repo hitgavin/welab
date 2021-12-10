@@ -37,8 +37,11 @@
 
 #include "extension/iplugin.hpp"
 #include "extension/iplugin_p.hpp"
+#include "extension/plugin_manager.hpp"
 
 #include "utils/host_os_info.hpp"
+#include "utils/string_utils.hpp"
+#include "utils/wl_assert.hpp"
 
 #include <QCoreApplication>
 #include <QDebug>
@@ -50,6 +53,8 @@
 #include <QJsonObject>
 #include <QJsonValue>
 #include <QPluginLoader>
+
+#include <algorithm>
 
 using namespace extension;
 using namespace extension::internal;
@@ -130,6 +135,8 @@ bool PluginSpec::isEffectivelyEnabled() const {
 
 bool PluginSpec::isEnabledIndirectly() const { return d_ptr->enabled_indirectly; }
 
+bool PluginSpec::isForceEnabled() const { return d_ptr->force_enabled; }
+
 bool PluginSpec::isForceDisabled() const { return d_ptr->force_disabled; }
 
 QVector<PluginDependency> PluginSpec::dependencies() const { return d_ptr->dependencies; }
@@ -158,13 +165,11 @@ bool PluginSpec::provides(const QString &plugin_name, const QString &version) co
   return d_ptr->provides(plugin_name, version);
 }
 
-std::shared_ptr<IPlugin> PluginSpec::plugin() const { return d_ptr->plugin; }
+IPlugin *PluginSpec::plugin() const { return d_ptr->plugin; }
 
-QHash<PluginDependency, std::shared_ptr<PluginSpec>> PluginSpec::dependencySpecs() const {
-  return d_ptr->dependency_specs;
-}
+QHash<PluginDependency, PluginSpec *> PluginSpec::dependencySpecs() const { return d_ptr->dependency_specs; }
 
-bool PluginSpec::requiresAny(const QSet<std::shared_ptr<PluginSpec>> &plugins) const {
+bool PluginSpec::requiresAny(const QSet<PluginSpec *> &plugins) const {
   return std::any_of(d_ptr->dependency_specs.keys().begin(), d_ptr->dependency_specs.keys().end(),
                      [this, &plugins](const PluginDependency &dep) {
                        return dep.type == PluginDependency::REQUIRED &&
@@ -174,10 +179,11 @@ bool PluginSpec::requiresAny(const QSet<std::shared_ptr<PluginSpec>> &plugins) c
 
 void PluginSpec::setEnabledBySettings(bool value) { return d_ptr->setEnabledBySettings(value); }
 
-std::shared_ptr<PluginSpec> PluginSpec::read(const QString &file_path) {
-  auto spec = std::make_shared<PluginSpec>();
+PluginSpec *PluginSpec::read(const QString &file_path) {
+  auto spec = new PluginSpec();
   if (!spec->d_ptr->read(file_path)) {
-    return std::shared_ptr<PluginSpec>();
+    delete spec;
+    return nullptr;
   }
   return spec;
 }
@@ -202,14 +208,13 @@ const char DEPENDENCY_VERSION[] = "Version";
 const char DEPENDENCY_TYPE[] = "Type";
 const char DEPENDENCY_TYPE_SOFT[] = "optional";
 const char DEPENDENCY_TYPE_HARD[] = "required";
-const char DEPENDENCY_TYPE_TEST[] = "test";
 const char ARGUMENTS[] = "Arguments";
 const char ARGUMENT_NAME[] = "Name";
 const char ARGUMENT_PARAMETER[] = "Parameter";
 const char ARGUMENT_DESCRIPTION[] = "Description";
 }  // namespace
 
-PluginSpecPrivate::PluginSpecPrivate(std::shared_ptr<PluginSpec> spec) : q_ptr(spec) {
+PluginSpecPrivate::PluginSpecPrivate(PluginSpec *spec) : q_ptr(spec) {
   if (utils::HostOsInfo::isMacHost()) {
     loader.setLoadHints(QLibrary::ExportExternalSymbolsHint);
   }
@@ -310,4 +315,403 @@ bool PluginSpecPrivate::readMetaData(const QJsonObject &plugin_meta_data) {
     return reportError(tr("Plugin meta data not found"));
   }
   meta_data = value.toObject();
+  // plugin name
+  value = meta_data.value(QLatin1String(PLUGIN_NAME));
+  if (value.isUndefined()) {
+    return reportError(msgValueMissing(PLUGIN_NAME));
+  }
+  if (!value.isString()) {
+    return reportError(msgValueIsNotAString(PLUGIN_NAME));
+  }
+  name = value.toString();
+  // plugin version
+  value = meta_data.value(QLatin1String(PLUGIN_VERSION));
+  if (value.isUndefined()) {
+    return reportError(msgValueMissing(PLUGIN_VERSION));
+  }
+  if (!value.isString()) {
+    return reportError(msgValueIsNotAString(PLUGIN_VERSION));
+  }
+  version = value.toString();
+  if (!isValidVerion(version)) {
+    return reportError(msgInvalidFormat(PLUGIN_VERSION, version));
+  }
+  // compat version
+  value = meta_data.value(QLatin1String(PLUGIN_COMPATVERSION));
+  if (!value.isUndefined() && !value.isString()) {
+    return reportError(msgValueIsNotAString(PLUGIN_COMPATVERSION));
+  }
+  compat_version = value.toString(version);
+  if (!value.isUndefined() && !isValidVerion(compat_version)) {
+    return reportError(msgInvalidFormat(PLUGIN_COMPATVERSION, compat_version));
+  }
+  // plugin required
+  value = meta_data.value(QLatin1String(PLUGIN_REQUIRED));
+  if (!value.isUndefined() && !value.isBool()) {
+    return reportError(msgValueIsNotABool(PLUGIN_REQUIRED));
+  }
+  required = value.toBool(false);
+  qCDebug(pluginLog) << "required =" << required;
+  // plugin enabled by default
+  value = meta_data.value(QLatin1String(PLUGIN_DISABLED_BY_DEFAULT));
+  if (!value.isUndefined() && !value.isBool()) {
+    return reportError(msgValueIsNotABool(PLUGIN_DISABLED_BY_DEFAULT));
+  }
+  enabled_by_default = !value.toBool(false);
+  qCDebug(pluginLog) << "enabled_by_default =" << enabled_by_default;
+
+  enabled_by_settings = enabled_by_default;
+  // plugin vendor
+  value = meta_data.value(QLatin1String(VENDOR));
+  if (!value.isUndefined() && !value.isString()) {
+    return reportError(msgValueIsNotAString(VENDOR));
+  }
+  vendor = value.toString();
+  // copyright
+  value = meta_data.value(QLatin1String(COPYRIGHT));
+  if (!value.isUndefined() && !value.isString()) {
+    return reportError(msgValueIsNotAString(COPYRIGHT));
+  }
+  copyright = value.toString();
+  // description
+  value = meta_data.value(QLatin1String(DESCRIPTION));
+  if (!value.isUndefined() && !utils::readMultiLineString(value, &description)) {
+    return reportError(msgValueIsNotAString(DESCRIPTION));
+  }
+  // url
+  value = meta_data.value(QLatin1String(URL));
+  if (!value.isUndefined() && !value.isString()) {
+    return reportError(msgValueIsNotAString(URL));
+  }
+  url = value.toString();
+  // category
+  value = meta_data.value(QLatin1String(CATEGORY));
+  if (!value.isUndefined() && !value.isString()) {
+    return reportError(msgValueIsNotAString(CATEGORY));
+  }
+  category = value.toString();
+  // license
+  value = meta_data.value(QLatin1String(LICENSE));
+  if (!value.isUndefined() && !utils::readMultiLineString(value, &license)) {
+    return reportError(msgValueIsNotAMultilineString(LICENSE));
+  }
+  // platform
+  value = meta_data.value(QLatin1String(PLATFORM));
+  if (!value.isUndefined() && !value.isString()) {
+    return reportError(msgValueIsNotAString(PLATFORM));
+  }
+  const QString platform_spec = value.toString().trimmed();
+  if (!platform_spec.isEmpty()) {
+    platform_specification.setPattern(platform_spec);
+    if (!platform_specification.isValid()) {
+      return reportError(
+          tr("Invalid platform specification \"%1\": %2").arg(platform_spec, platform_specification.errorString()));
+    }
+  }
+  // dependencies
+  value = meta_data.value(QLatin1String(DEPENDENCIES));
+  if (!value.isUndefined() && !value.isArray()) {
+    return reportError(msgValueIsNotAObjectArray(DEPENDENCIES));
+  }
+  if (!value.isUndefined()) {
+    const QJsonArray array = value.toArray();
+    for (const QJsonValue &v : array) {
+      if (!v.isObject()) {
+        return reportError(msgValueIsNotAObjectArray(DEPENDENCIES));
+      }
+      QJsonObject dependency_object = v.toObject();
+      PluginDependency dep;
+      value = dependency_object.value(QLatin1String(DEPENDENCY_NAME));
+      if (value.isUndefined()) {
+        return reportError(tr("Dependency: %1").arg(msgValueMissing(DEPENDENCY_NAME)));
+      }
+      if (!value.isString()) {
+        return reportError(tr("Dependency: %1").arg(msgValueIsNotAString(DEPENDENCY_NAME)));
+      }
+      dep.name = value.toString();
+      value = dependency_object.value(QLatin1String(DEPENDENCY_VERSION));
+      if (!value.isUndefined() && !value.isString()) {
+        return reportError(tr("Dependency: %1").arg(msgValueIsNotAString(DEPENDENCY_VERSION)));
+      }
+      dep.version = value.toString();
+      if (!isValidVerion(dep.version)) {
+        return reportError(tr("Dependency: %1").arg(msgInvalidFormat(DEPENDENCY_VERSION, dep.version)));
+      }
+      dep.type = PluginDependency::REQUIRED;
+      value = dependency_object.value(QLatin1String(DEPENDENCY_TYPE));
+      if (!value.isUndefined() && !value.isString()) {
+        return reportError(tr("Dependency: %1").arg(msgValueIsNotAString(DEPENDENCY_TYPE)));
+      }
+      if (!value.isUndefined()) {
+        const QString type_value = value.toString();
+        if (type_value.toLower() == QLatin1String(DEPENDENCY_TYPE_HARD)) {
+          dep.type = PluginDependency::REQUIRED;
+        } else if (type_value.toLower() == QLatin1String(DEPENDENCY_TYPE_SOFT)) {
+          dep.type = PluginDependency::OPTIONAL;
+        } else {
+          return reportError(tr("Dependency: \"%1\" must be \"%2\" or \"%3\" (is \"%4\").")
+                                 .arg(QLatin1String(DEPENDENCY_TYPE), QLatin1String(DEPENDENCY_TYPE_HARD),
+                                      QLatin1String(DEPENDENCY_TYPE_SOFT), type_value));
+        }
+      }
+      dependencies.append(dep);
+    }
+  }
+
+  // arguments
+  value = meta_data.value(QLatin1String(ARGUMENTS));
+  if (!value.isUndefined() && !value.isArray()) {
+    return reportError(msgValueIsNotAObjectArray(ARGUMENTS));
+  }
+  if (!value.isUndefined()) {
+    const QJsonArray array = value.toArray();
+    for (const QJsonValue &v : array) {
+      if (!v.isObject()) {
+        return reportError(msgValueIsNotAObjectArray(ARGUMENTS));
+      }
+      QJsonObject argument_object = v.toObject();
+      PluginArgumentDescription arg;
+      value = argument_object.value(QLatin1String(ARGUMENT_NAME));
+      if (value.isUndefined()) {
+        return reportError(tr("Argument: %1").arg(msgValueMissing(ARGUMENT_NAME)));
+      }
+      if (!value.isString()) {
+        return reportError(tr("Argument: %1").arg(msgValueIsNotAString(ARGUMENT_NAME)));
+      }
+      arg.name = value.toString();
+      if (arg.name.isEmpty()) {
+        return reportError(tr("Argument: \"%1\" is empty").arg(QLatin1String(ARGUMENT_NAME)));
+      }
+      value = argument_object.value(QLatin1String(ARGUMENT_DESCRIPTION));
+      if (!value.isUndefined() && !value.isString()) {
+        return reportError(tr("Argument: %1").arg(msgValueIsNotAString(ARGUMENT_DESCRIPTION)));
+      }
+      arg.description = value.toString();
+      value = argument_object.value(QLatin1String(ARGUMENT_PARAMETER));
+      if (!value.isUndefined() && !value.isString()) {
+        return reportError(tr("Argument: %1").arg(msgValueIsNotAString(ARGUMENT_PARAMETER)));
+      }
+      arg.parameter = value.toString();
+      argument_descriptions.append(arg);
+      qCDebug(pluginLog) << "Argument:" << arg.name << "Parameter:" << arg.parameter
+                         << "Description:" << arg.description;
+    }
+  }
+
+  return true;
+}
+
+bool PluginSpecPrivate::provides(const QString &plugin_name, const QString &plugin_version) const {
+  if (QString::compare(plugin_name, name, Qt::CaseInsensitive) != 0) {
+    return false;
+  }
+
+  return (versionCompare(version, plugin_version) >= 0) && (versionCompare(compat_version, plugin_version) <= 0);
+}
+
+const QRegularExpression &PluginSpecPrivate::versionRegExp() {
+  static const QRegularExpression reg("^([0-9]+)(?:[.]([0-9]))?(?:[.]([0-9]+))?(?:_([0-9]+))?$");
+  return reg;
+}
+
+bool PluginSpecPrivate::isValidVerion(const QString &version) { return versionRegExp().match(version).hasMatch(); }
+
+int PluginSpecPrivate::versionCompare(const QString &version1, const QString &version2) {
+  const QRegularExpressionMatch match1 = versionRegExp().match(version1);
+  const QRegularExpressionMatch match2 = versionRegExp().match(version2);
+
+  if (!match1.hasMatch()) {
+    return 0;
+  }
+  if (!match2.hasMatch()) {
+    return 0;
+  }
+  for (int i = 0; i < 4; ++i) {
+    const int number1 = match1.captured(i + 1).toInt();
+    const int number2 = match2.captured(i + 1).toInt();
+    if (number1 < number2) {
+      return -1;
+    }
+    if (number1 > number2) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
+bool PluginSpecPrivate::resolveDependencies(const QVector<PluginSpec *> &specs) {
+  if (has_error) {
+    return false;
+  }
+  if (state == PluginSpec::RESOLVED) {
+    // Go back, so we just re-resolve
+    state = PluginSpec::READ;
+  }
+  if (state != PluginSpec::READ) {
+    error_string = QCoreApplication::translate("PluginSpec", "Resolving dependencies failed because state != READ");
+    has_error = true;
+    return false;
+  }
+  QHash<PluginDependency, PluginSpec *> resolved_dependencies;
+  for (const PluginDependency &dependency : qAsConst(dependencies)) {
+    auto it = std::find_if(specs.begin(), specs.end(), [&dependency](PluginSpec *spec) {
+      return spec->provides(dependency.name, dependency.version);
+    });
+    if (it == specs.end()) {
+      if (dependency.type == PluginDependency::REQUIRED) {
+        has_error = true;
+        if (!error_string.isEmpty()) {
+          error_string.append(QLatin1Char('\n'));
+        }
+        error_string.append(QCoreApplication::translate("PluginSpec", "Could not resolve dependency '%1(%2)'")
+                                .arg(dependency.name)
+                                .arg(dependency.version));
+      }
+      continue;
+    }
+    resolved_dependencies.insert(dependency, *it);
+  }
+
+  if (has_error) {
+    return false;
+  }
+  dependency_specs = resolved_dependencies;
+
+  state = PluginSpec::RESOLVED;
+
+  return true;
+}
+
+QVector<PluginSpec *> PluginSpecPrivate::enableDependenciesIndirectly() {
+  if (!q_ptr->isEffectivelyEnabled()) {
+    return {};
+  }
+  QVector<PluginSpec *> enabled;
+  for (auto it = dependency_specs.cbegin(), end = dependency_specs.cend(); it != end; ++it) {
+    if (it.key().type != PluginDependency::REQUIRED) {
+      continue;
+    }
+    PluginSpec *dependency_spec = it.value();
+    if (!dependency_spec->isEffectivelyEnabled()) {
+      dependency_spec->d_ptr->enabled_indirectly = true;
+      enabled << dependency_spec;
+    }
+  }
+  return enabled;
+}
+
+bool PluginSpecPrivate::loadLibrary() {
+  if (has_error) {
+    return false;
+  }
+  if (state != PluginSpec::RESOLVED) {
+    if (state == PluginSpec::LOADED) {
+      return true;
+    }
+    error_string = QCoreApplication::translate("PluginSpec", "Loading the library failed because state != RESOLVED");
+    has_error = true;
+    return false;
+  }
+  if (!loader.load()) {
+    has_error = true;
+    error_string = QDir::toNativeSeparators(file_path) + QString::fromLatin1(": ") + loader.errorString();
+    return false;
+  }
+
+  IPlugin *plugin_object = qobject_cast<IPlugin *>(loader.instance());
+  if (!plugin_object) {
+    has_error = true;
+    error_string = QCoreApplication::translate("PluginSpec", "Plugin is not valid (does not derive from IPlugin)");
+    loader.unload();
+    return false;
+  }
+  state = PluginSpec::LOADED;
+  plugin = plugin_object;
+  plugin->d_ptr->plugin_spec = q_ptr;
+  return true;
+}
+
+bool PluginSpecPrivate::initializePlugin() {
+  if (has_error) {
+    return false;
+  }
+  if (state != PluginSpec::LOADED) {
+    if (state == PluginSpec::INITIALIZED) {
+      return true;
+    }
+    error_string = QCoreApplication::translate("PluginSpec", "Initializing the plugin failed because state != LOADED");
+    has_error = true;
+    return false;
+  }
+  if (!plugin) {
+    error_string = QCoreApplication::translate("PluginSpec", "Internal error: have no plugin instance to initialize");
+    has_error = true;
+    return false;
+  }
+  QString err;
+  if (!plugin->initialize(arguments, &err)) {
+    error_string = QCoreApplication::translate("PluginSpec", "Plugin initialization failed: %1").arg(err);
+    has_error = true;
+    return false;
+  }
+  state = PluginSpec::INITIALIZED;
+  return true;
+}
+
+bool PluginSpecPrivate::initializeExtensions() {
+  if (has_error) {
+    return false;
+  }
+  if (state != PluginSpec::INITIALIZED) {
+    if (state == PluginSpec::RUNNING) {
+      return true;
+    }
+    error_string =
+        QCoreApplication::translate("PluginSpec", "Cannot perform extensionsInitialized because state != INITIALIZED");
+    has_error = true;
+    return false;
+  }
+  if (!plugin) {
+    error_string = QCoreApplication::translate(
+        "PluginSpec", "Internal error: have no plugin instance to perform extensionsInitialized");
+    has_error = true;
+    return false;
+  }
+  plugin->extensionsInitialized();
+  state = PluginSpec::RUNNING;
+
+  return true;
+}
+
+bool PluginSpecPrivate::delayedInitialize() {
+  if (has_error) {
+    return false;
+  }
+  if (state != PluginSpec::RUNNING) {
+    return false;
+  }
+  if (!plugin) {
+    error_string = QCoreApplication::translate("PluginSpec",
+                                               "Internal error: have no plugin instance to perform delayedInitialize");
+    has_error = true;
+    return false;
+  }
+  return plugin->delayedInitialize();
+}
+
+IPlugin::ShutdownFlag PluginSpecPrivate::stop() {
+  if (!plugin) {
+    return IPlugin::SYNCHRONOUS_SHUTDOWN;
+  }
+  state = PluginSpec::STOPPED;
+  return plugin->aboutToShutdown();
+}
+
+void PluginSpecPrivate::kill() {
+  if (!plugin) {
+    return;
+  }
+  delete plugin;
+  plugin = nullptr;
+  state = PluginSpec::DELETED;
 }

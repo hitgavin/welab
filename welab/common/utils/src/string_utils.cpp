@@ -32,54 +32,39 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#ifndef WELAB__EXTENSION__IPLUGIN_HPP_
-#define WELAB__EXTENSION__IPLUGIN_HPP_
+#include "utils/string_utils.hpp"
 
-#include "extension_global.hpp"
-#include "macros/class_forward.hpp"
-#include "macros/declare_private.hpp"
+#include "utils/wl_assert.hpp"
+#include "utils/host_os_info.hpp"
 
-#include <QObject>
+#include <QCoreApplication>
+#include <QDir>
+#include <QJsonArray>
+#include <QJsonValue>
+#include <QRegularExpression>
+#include <QSet>
+#include <QTime>
 
-namespace extension {
+#include <limits.h>
 
-namespace internal {
-class IPluginPrivate;
-class PluginSpecPrivate;
-}  // namespace internal
-
-class PluginManager;
-class PluginSpec;
-
-class EXTENSION_EXPORT IPlugin : public QObject {
-  Q_OBJECT
-public:
-  enum ShutdownFlag { SYNCHRONOUS_SHUTDOWN, ASYNCHRONOUS_SHUTDOWN };
-
-  IPlugin();
-  ~IPlugin() override;
-
-  virtual bool initialize(const QStringList& args, QString* error) = 0;
-  virtual void extensionsInitialized(){};
-  virtual bool delayedInitialize() { return false; }
-  virtual ShutdownFlag aboutToShutdown() { return SYNCHRONOUS_SHUTDOWN; }
-  virtual QObject* remoteCommand(const QStringList& options, const QString& working_dir, const QStringList& args) {
-    Q_UNUSED(options);
-    Q_UNUSED(working_dir);
-    Q_UNUSED(args);
-    return nullptr;
+namespace utils {
+UTILS_EXPORT bool readMultiLineString(const QJsonValue &value, QString *out) {
+  WL_ASSERT(out, return false);
+  if (value.isString()) {
+    *out = value.toString();
+  } else if (value.isArray()) {
+    QJsonArray array = value.toArray();
+    QStringList lines;
+    for (const QJsonValue &v : array) {
+      if (!v.isString()) {
+        return false;
+      }
+      lines.append(v.toString());
+    }
+    *out = lines.join(QLatin1Char('\n'));
+  } else {
+    return false;
   }
-
-  PluginSpec* pluginSpec() const;
-
-signals:
-  void asynchronousShutdownFinished();
-
-private:
-  WELAB_DECLARE_PRIVATE_NS(internal, IPlugin);
-  friend class internal::PluginSpecPrivate;
-};
-
-}  // namespace extension
-
-#endif
+  return true;
+}
+}  // namespace utils
