@@ -35,10 +35,30 @@
 #include "extension/plugin_manager.hpp"
 #include "extension/plugin_manager_p.hpp"
 
+#include "extension/iplugin.hpp"
+#include "extension/plugin_spec.hpp"
+#include "extension/plugin_spec_p.hpp"
+
 #include "utils/host_os_info.hpp"
 #include "utils/wl_assert.hpp"
 
+#include <QCoreApplication>
+#include <QCryptographicHash>
+#include <QDateTime>
+#include <QDebug>
+#include <QDir>
+#include <QEventLoop>
+#include <QFile>
+#include <QGuiApplication>
+#include <QLibrary>
+#include <QLibraryInfo>
+#include <QMessageBox>
+#include <QMetaProperty>
+#include <QPushButton>
 #include <QSysInfo>
+#include <QTextStream>
+#include <QTimer>
+#include <QWriteLocker>
 
 #include <functional>
 #include <memory>

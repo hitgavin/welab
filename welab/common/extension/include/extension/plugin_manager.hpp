@@ -58,10 +58,54 @@ class PluginManagerPrivate;
 class EXTENSION_EXPORT PluginManager : public QObject {
   Q_OBJECT
 public:
+  struct ProcessData {
+    QString executable;
+    QStringList args;
+    QString working_path;
+    QString settings_path;
+  };
+
   static PluginManager *instance();
 
   PluginManager();
   ~PluginManager() override;
+
+  // Object pool operations
+  static void addObject(QObject *obj);
+  static void removeObject(QObject *obj);
+  static QVector<QObject *> allObjects();
+  static QReadWriteLock *listLock();
+
+  // This is useful for soft dependencies using pure interface
+  template <typename T>
+  static T *getObject() {
+    QReadLocker lock(listLock());
+    const QVector<QObject *> all = allObjects();
+    for (QObject *obj : all) {
+      if (T *result = qobject_cast<T *>(obj)) {
+        return result;
+      }
+    }
+
+    return nullptr;
+  }
+
+  template <typename T, typename Predicate>
+  static T *getObject(Predicate predicate) {
+    QReadLocker lock(listLock());
+    const QVector<QObject *> all = allObjects();
+    for (QObject *obj : all) {
+      if (T *result = qobject_cast<T *>(obj)) {
+        if (predicate(result)) {
+          return result;
+        }
+      }
+    }
+
+    return nullptr;
+  }
+
+  static QObject *getObjectByName(const QString &name);
 
   // Plugin operations
   static QVector<PluginSpec *> loadQueue();
@@ -95,7 +139,26 @@ public:
 
   static QString serializedArguments();
 
+  static void setWelabProcessData(const ProcessData &data);
+  static ProcessData welabProcessData();
+
+  static void profilingReport(const char *what, const PluginSpec *spec = nullptr);
   static QString platformName();
+  static bool isInitializationDone();
+
+  static void remoteArguments(const QString &serialized_arguments, QObject *socket);
+  static void shutdown();
+
+  static QString systemInformation();
+
+signals:
+  void objectAdded(QObject *obj);
+  void aboutToRemoveObject(QObject *obj);
+
+  void pluginsChanged();
+  void initializationDone();
+
+  friend class internal::PluginManagerPrivate;
 };
 }  // namespace extension
 

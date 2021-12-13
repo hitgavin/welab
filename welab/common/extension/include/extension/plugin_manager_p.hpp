@@ -47,6 +47,7 @@
 #include <QStringList>
 #include <QWaitCondition>
 
+#include <atomic>
 #include <queue>
 
 QT_BEGIN_NAMESPACE
@@ -84,6 +85,65 @@ public:
   void setGlobalSettings(utils::WlSettings *settings);
   void readSettings();
   void writeSettings();
+
+  // Look in argument descriptions of the specs for the option.
+  PluginSpec *pluginForOption(const QString &option, bool *requires_argument) const;
+  PluginSpec *pluginByName(const QString &name) const;
+
+  QHash<QString, QVector<PluginSpec *>> plugin_categories;
+  QVector<PluginSpec *> plugin_specs;
+  QStringList plugin_paths;
+  QString plugin_iid;
+  QVector<QObject *> all_objects;
+  // Plugins/Ignored from install settings
+  QStringList default_disabled_plugins;
+  // Plugins/ForceEnabled from install settings
+  QStringList default_enabled_plugins;
+  QStringList disabled_plugins;
+  QStringList force_enabled_plugins;
+  // delayed initialization
+  QTimer *delayed_initialize_timer = nullptr;
+  std::queue<PluginSpec *> delayed_initialize_queue;
+  // asynchronous shutdown
+  // plugins that have requested async shutdown
+  QSet<PluginSpec *> asynchronous_plugins;
+  // used for async shutdown
+  QEventLoop *shutdown_event_loop = nullptr;
+
+  QStringList arguments;
+  QStringList arguments_for_restart;
+  QScopedPointer<QElapsedTimer> profile_timer;
+  QHash<const PluginSpec *, int> profile_total;
+  int profile_elapsed_ms = 0;
+  unsigned profiling_verbosity = 0;
+  utils::WlSettings *settings = nullptr;
+  utils::WlSettings *global_settings = nullptr;
+
+  mutable QReadWriteLock lock;
+
+  bool is_initialization_done = false;
+  bool enable_crash_check = true;
+
+  QHash<QString, std::function<bool()>> scenarios;
+  QString requested_scenario;
+  std::atomic_bool is_scenario_running = false;
+  std::atomic_bool is_scenario_finished = false;
+  bool scenario_fully_initialized = false;
+  QMutex scenario_mutex;
+  QWaitCondition scenario_wait_condation;
+
+  PluginManager::ProcessData welab_process_data;
+
+private:
+  void nextDelayedInitialize();
+  void asyncShutdownFinished();
+  void readPluginPaths();
+  bool loadQueue(PluginSpec *spec, QVector<extension::PluginSpec *> &queue,
+                 QVector<extension::PluginSpec *> &circularity_check_queue);
+  void stopAll();
+  void deleteAll();
+
+  PluginManager *q;
 };
 }  // namespace internal
 }  // namespace extension
