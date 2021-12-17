@@ -40,6 +40,8 @@
 #include "utils/wl_settings.hpp"
 
 #include <QObject>
+#include <QReadWriteLock>
+#include <QReadLocker>
 #include <QStringList>
 
 QT_BEGIN_NAMESPACE
@@ -115,9 +117,18 @@ public:
   static QString pluginIID();
   static void setPluginIID(const QString &iid);
   static const QVector<PluginSpec *> plugins();
+  static QHash<QString, QVector<PluginSpec *>> pluginCollections();
   static bool hasError();
   static const QStringList allErrors();
+  /**
+   * @brief Find all plugins that require \a spec to be loaded.
+   * Recurses into dependencies.
+   */
   static const QSet<PluginSpec *> pluginsRequiringPlugin(PluginSpec *spec);
+  /**
+   * @brief Find all plugins that t \a spec requires to be loaded.
+   * Recurses into dependencies.
+   */
   static const QSet<PluginSpec *> pluginsRequiredByPlugin(PluginSpec *spec);
   static void checkForProblematicPlugins();
 

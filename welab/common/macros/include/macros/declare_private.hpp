@@ -43,7 +43,7 @@
  */
 #define WELAB_DECLARE_PRIVATE_NS(ns, Class)        \
   typedef std::unique_ptr<ns::Class##Private> Imp; \
-  Imp d_ptr;                                       \
+  Imp d;                                           \
   friend class ns::Class##Private
 
 /**
@@ -52,7 +52,7 @@
  */
 #define WELAB_DECLARE_PRIVATE(Class)           \
   typedef std::unique_ptr<Class##Private> Imp; \
-  Imp d_ptr;                                   \
+  Imp d;                                       \
   friend class Class##Private
 
 #endif

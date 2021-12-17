@@ -86,9 +86,102 @@ PluginManager::PluginManager() {
 
 PluginManager::~PluginManager() {}
 
-QString PluginManager::pluginIID() { return QString(""); }
+void PluginManager::addObject(QObject *obj) { d->addObject(obj); }
 
-void PluginManager::setPluginIID(const QString &) {}
+void PluginManager::removeObject(QObject *obj) { d->removeObject(obj); }
+
+QVector<QObject *> PluginManager::allObjects() { return d->all_objects; }
+
+QReadWriteLock *PluginManager::listLock() { return &d->lock; }
+
+void PluginManager::loadPlugins() { d->loadPlugins(); }
+
+bool PluginManager::hasError() {
+  return std::any_of(plugins().begin(), plugins().end(), [](PluginSpec *spec) {
+    // only show errors on startup if plugin is enabled.
+    return spec->hasError() && spec->isEffectivelyEnabled();
+  });
+}
+
+const QStringList PluginManager::allErrors() {
+  QStringList sl;
+  QVector<PluginSpec *> ps;
+  std::copy_if(plugins().begin(), plugins().end(), ps.begin(),
+               [](const PluginSpec *spec) { return spec->hasError() && spec->isEffectivelyEnabled(); });
+  std::transform(ps.begin(), ps.end(), sl.begin(),
+                 [](const PluginSpec *spec) { return spec->name().append(": ").append(spec->errorString()); });
+}
+
+const QSet<PluginSpec *> PluginManager::pluginsRequiringPlugin(PluginSpec *spec) {
+  QSet<PluginSpec *> depending_plugins({spec});
+  for (PluginSpec *spec : d->loadQueue()) {
+    if (spec->requiresAny(depending_plugins)) {
+      depending_plugins.insert(spec);
+    }
+  }
+  depending_plugins.remove(spec);
+  return depending_plugins;
+}
+
+const QSet<PluginSpec *> PluginManager::pluginsRequiredByPlugin(PluginSpec *spec) {
+  QSet<PluginSpec *> recursive_dependencies;
+  recursive_dependencies.insert(spec);
+  std::queue<PluginSpec *> queue;
+  queue.push(spec);
+
+  while (!queue.empty()) {
+    PluginSpec *check_spec = queue.front();
+    queue.pop();
+    const QHash<PluginDependency, PluginSpec *> deps = check_spec->dependencySpecs();
+    for (auto dep_it = deps.cbegin(), end = deps.cend(); dep_it != end; ++dep_it) {
+      if (dep_it.key().type != PluginDependency::REQUIRED) {
+        continue;
+      }
+      PluginSpec *dep_spec = dep_it.value();
+      if (!recursive_dependencies.contains(dep_spec)) {
+        recursive_dependencies.insert(dep_spec);
+        queue.push(dep_spec);
+      }
+    }
+  }
+  recursive_dependencies.remove(spec);
+  return recursive_dependencies;
+}
+
+void PluginManager::shutdown() { d->shutdown(); }
+
+static QString filled(const QString &s, int min) { return s + QString(qMax(0, min - s.size()), ' '); }
+
+QString PluginManager::systemInformation() {
+  QString result;
+  return result;
+}
+
+QStringList PluginManager::pluginPaths() { return d->plugin_paths; }
+
+void PluginManager::setPluginPaths(const QStringList &paths) { d->setPluginPaths(paths); }
+
+QString PluginManager::pluginIID() { return d->plugin_iid; }
+
+void PluginManager::setPluginIID(const QString &iid) { d->plugin_iid = iid; }
+
+void PluginManager::setSettings(WlSettings *settings) { d->setSettings(settings); }
+
+void PluginManager::setGlobalSettings(WlSettings *settings) { d->setGlobalSettings(settings); }
+
+WlSettings *PluginManager::settings() { return d->settings; }
+
+WlSettings *PluginManager::globalSettings() { return d->global_settings; }
+
+void PluginManager::writeSettings() { d->writeSettings(); }
+
+QStringList PluginManager::arguments() { return d->arguments; }
+
+QStringList PluginManager::argumentsForRestart() { d->arguments_for_restart; }
+
+const QVector<PluginSpec *> PluginManager::plugins() { return d->plugin_specs; }
+
+QHash<QString, QVector<PluginSpec *>> PluginManager::pluginCollections() { return d->plugin_categories; }
 
 static inline QString getPlatformName() {
   if (HostOsInfo::isMacHost()) {

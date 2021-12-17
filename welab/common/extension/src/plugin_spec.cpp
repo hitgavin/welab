@@ -77,27 +77,27 @@ static QString typeString(PluginDependency::Type type) {
 
 QString PluginDependency::toString() const { return name + " (" + version + typeString(type) + ")"; }
 
-PluginSpec::PluginSpec() : d_ptr(std::make_unique<PluginSpecPrivate>(this)) {}
+PluginSpec::PluginSpec() : d(std::make_unique<PluginSpecPrivate>(this)) {}
 
 PluginSpec::~PluginSpec() {}
 
-QString PluginSpec::name() const { return d_ptr->name; }
+QString PluginSpec::name() const { return d->name; }
 
-QString PluginSpec::version() const { return d_ptr->version; }
+QString PluginSpec::version() const { return d->version; }
 
-QString PluginSpec::compatVersion() const { return d_ptr->compat_version; }
+QString PluginSpec::compatVersion() const { return d->compat_version; }
 
-QString PluginSpec::vendor() const { return d_ptr->vendor; }
+QString PluginSpec::vendor() const { return d->vendor; }
 
-QString PluginSpec::copyright() const { return d_ptr->copyright; }
+QString PluginSpec::copyright() const { return d->copyright; }
 
-QString PluginSpec::license() const { return d_ptr->license; }
+QString PluginSpec::license() const { return d->license; }
 
-QString PluginSpec::description() const { return d_ptr->description; }
+QString PluginSpec::description() const { return d->description; }
 
-QString PluginSpec::url() const { return d_ptr->url; }
+QString PluginSpec::url() const { return d->url; }
 
-QString PluginSpec::category() const { return d_ptr->category; }
+QString PluginSpec::category() const { return d->category; }
 
 QString PluginSpec::revision() const {
   const QJsonValue revision = metaData().value("Revision");
@@ -107,18 +107,18 @@ QString PluginSpec::revision() const {
   return QString();
 }
 
-QRegularExpression PluginSpec::platformSpecification() const { return d_ptr->platform_specification; }
+QRegularExpression PluginSpec::platformSpecification() const { return d->platform_specification; }
 
 bool PluginSpec::isAvailableForHostPlatform() const {
-  return d_ptr->platform_specification.pattern().isEmpty() ||
-         d_ptr->platform_specification.match(PluginManager::platformName()).hasMatch();
+  return d->platform_specification.pattern().isEmpty() ||
+         d->platform_specification.match(PluginManager::platformName()).hasMatch();
 }
 
-bool PluginSpec::isRequired() const { return d_ptr->required; }
+bool PluginSpec::isRequired() const { return d->required; }
 
-bool PluginSpec::isEnabledByDefault() const { return d_ptr->enabled_by_default; }
+bool PluginSpec::isEnabledByDefault() const { return d->enabled_by_default; }
 
-bool PluginSpec::isEnabledBySettings() const { return d_ptr->enabled_by_settings; }
+bool PluginSpec::isEnabledBySettings() const { return d->enabled_by_settings; }
 
 bool PluginSpec::isEffectivelyEnabled() const {
   if (!isAvailableForHostPlatform()) {
@@ -133,55 +133,55 @@ bool PluginSpec::isEffectivelyEnabled() const {
   return isEnabledBySettings();
 }
 
-bool PluginSpec::isEnabledIndirectly() const { return d_ptr->enabled_indirectly; }
+bool PluginSpec::isEnabledIndirectly() const { return d->enabled_indirectly; }
 
-bool PluginSpec::isForceEnabled() const { return d_ptr->force_enabled; }
+bool PluginSpec::isForceEnabled() const { return d->force_enabled; }
 
-bool PluginSpec::isForceDisabled() const { return d_ptr->force_disabled; }
+bool PluginSpec::isForceDisabled() const { return d->force_disabled; }
 
-QVector<PluginDependency> PluginSpec::dependencies() const { return d_ptr->dependencies; }
+QVector<PluginDependency> PluginSpec::dependencies() const { return d->dependencies; }
 
-QJsonObject PluginSpec::metaData() const { return d_ptr->meta_data; }
+QJsonObject PluginSpec::metaData() const { return d->meta_data; }
 
-PluginSpec::PluginArgumentDescriptions PluginSpec::argumentDescriptions() const { return d_ptr->argument_descriptions; }
+PluginSpec::PluginArgumentDescriptions PluginSpec::argumentDescriptions() const { return d->argument_descriptions; }
 
-QString PluginSpec::location() const { return d_ptr->location; }
+QString PluginSpec::location() const { return d->location; }
 
-QString PluginSpec::filePath() const { return d_ptr->file_path; }
+QString PluginSpec::filePath() const { return d->file_path; }
 
-QStringList PluginSpec::arguments() const { return d_ptr->arguments; }
+QStringList PluginSpec::arguments() const { return d->arguments; }
 
-void PluginSpec::setArguments(const QStringList &args) { d_ptr->arguments = args; }
+void PluginSpec::setArguments(const QStringList &args) { d->arguments = args; }
 
-void PluginSpec::addArgument(const QString &arg) { d_ptr->arguments.push_back(arg); }
+void PluginSpec::addArgument(const QString &arg) { d->arguments.push_back(arg); }
 
-PluginSpec::State PluginSpec::state() const { return d_ptr->state; }
+PluginSpec::State PluginSpec::state() const { return d->state; }
 
-bool PluginSpec::hasError() const { return d_ptr->has_error; }
+bool PluginSpec::hasError() const { return d->has_error; }
 
-QString PluginSpec::errorString() const { return d_ptr->error_string; }
+QString PluginSpec::errorString() const { return d->error_string; }
 
 bool PluginSpec::provides(const QString &plugin_name, const QString &version) const {
-  return d_ptr->provides(plugin_name, version);
+  return d->provides(plugin_name, version);
 }
 
-IPlugin *PluginSpec::plugin() const { return d_ptr->plugin; }
+IPlugin *PluginSpec::plugin() const { return d->plugin; }
 
-QHash<PluginDependency, PluginSpec *> PluginSpec::dependencySpecs() const { return d_ptr->dependency_specs; }
+QHash<PluginDependency, PluginSpec *> PluginSpec::dependencySpecs() const { return d->dependency_specs; }
 
 bool PluginSpec::requiresAny(const QSet<PluginSpec *> &plugins) const {
-  return std::any_of(d_ptr->dependency_specs.keys().begin(), d_ptr->dependency_specs.keys().end(),
+  return std::any_of(d->dependency_specs.keys().begin(), d->dependency_specs.keys().end(),
                      [this, &plugins](const PluginDependency &dep) {
                        return dep.type == PluginDependency::REQUIRED &&
-                              plugins.contains(d_ptr->dependency_specs.value(dep));
+                              plugins.contains(d->dependency_specs.value(dep));
                      });
 }
 
-void PluginSpec::setEnabledBySettings(bool value) { return d_ptr->setEnabledBySettings(value); }
+void PluginSpec::setEnabledBySettings(bool value) { return d->setEnabledBySettings(value); }
 
 PluginSpec *PluginSpec::read(const QString &file_path) {
   auto spec = new PluginSpec();
-  if (!spec->d_ptr->read(file_path)) {
+  if (!spec->d->read(file_path)) {
     delete spec;
     return nullptr;
   }
@@ -593,7 +593,7 @@ QVector<PluginSpec *> PluginSpecPrivate::enableDependenciesIndirectly() {
     }
     PluginSpec *dependency_spec = it.value();
     if (!dependency_spec->isEffectivelyEnabled()) {
-      dependency_spec->d_ptr->enabled_indirectly = true;
+      dependency_spec->d->enabled_indirectly = true;
       enabled << dependency_spec;
     }
   }
@@ -627,7 +627,7 @@ bool PluginSpecPrivate::loadLibrary() {
   }
   state = PluginSpec::LOADED;
   plugin = plugin_object;
-  plugin->d_ptr->plugin_spec = q_ptr;
+  plugin->d->plugin_spec = q_ptr;
   return true;
 }
 

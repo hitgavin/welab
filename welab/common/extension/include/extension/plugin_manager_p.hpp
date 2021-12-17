@@ -68,6 +68,8 @@ public:
   PluginManagerPrivate(PluginManager *plugin_manager);
   ~PluginManagerPrivate() override;
   // Object pool operations
+  void addObject(QObject *obj);
+  void removeObject(QObject *obj);
 
   // Plugin operations
   void checkForProblematicPlugins();

@@ -158,31 +158,31 @@ struct OutputHandlerFilePrivate {
 /// @endcond
 
 console_bridge::OutputHandlerFile::OutputHandlerFile(const char *filename)
-    : OutputHandler(), d_ptr(std::make_unique<internal::OutputHandlerFilePrivate>()) {
+    : OutputHandler(), d(std::make_unique<internal::OutputHandlerFilePrivate>()) {
 #ifdef _MSC_VER
-  errno_t err = fopen_s(&d_ptr->file, filename, "a");
-  if (err != 0 || !d_ptr->file)
+  errno_t err = fopen_s(&d->file, filename, "a");
+  if (err != 0 || !d->file)
 #else
-  d_ptr->file = fopen(filename, "a");
-  if (!d_ptr->file)
+  d->file = fopen(filename, "a");
+  if (!d->file)
 #endif
     std::cerr << "Unable to open log file: '" << filename << "'" << std::endl;
 }
 
 console_bridge::OutputHandlerFile::~OutputHandlerFile() {
-  if (d_ptr->file) {
-    if (fclose(d_ptr->file) != 0) {
+  if (d->file) {
+    if (fclose(d->file) != 0) {
       std::cerr << "Error closing log file" << std::endl;
     }
   }
 }
 
 void console_bridge::OutputHandlerFile::log(const std::string &text, LogLevel level, const char *filename, int line) {
-  if (d_ptr->file) {
-    fprintf(d_ptr->file, "%s%s\n", LogLevelString[level], text.c_str());
+  if (d->file) {
+    fprintf(d->file, "%s%s\n", LogLevelString[level], text.c_str());
     if (level >= CONSOLE_BRIDGE_LOG_WARN) {
-      fprintf(d_ptr->file, "         at line %d in %s\n", line, filename);
-      fflush(d_ptr->file);
+      fprintf(d->file, "         at line %d in %s\n", line, filename);
+      fflush(d->file);
     }
   }
 }
