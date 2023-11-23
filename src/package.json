@@ -1,0 +1,19 @@
+{
+  "name": "welab",
+  "version": "0.0.1",
+  "description": "shared laboratory",
+  "main": "main.js",
+  "author": "gavin",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron ."
+  },
+  "dependencies": {
+    "node-pty": "1.1.0-beta1",
+    "electron": "22.3.14",
+    "xterm": "5.3.0-beta.7"
+  },
+  "devDependencies": {
+    "@electron/rebuild": "^3.2.9"
+  }
+}

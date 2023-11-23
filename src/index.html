@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Electron Demo</title>
+  <script src="./node_modules/xterm/lib/xterm.js"></script>
+  <link rel="Stylesheet" href="./node_modules/xterm/css/xterm.css">
+</head>
+<body>
+  <div id="output"></div>
+  <script src="./renderer.js"></script>
+</body>
+</html>
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>welab</title>
+  <script src="./node_modules/xterm/lib/xterm.js"></script>
+  <link rel="Stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="container">
+    <div class="sidebar">
+      <!-- 侧边栏内容 -->
+      <h2>Sidebar</h2>
+      <ul>
+        <li>Item 1</li>
+        <li>Item 2</li>
+        <li>Item 3</li>
+      </ul>
+    </div>
+    <div class="main">
+      <div class="editor">
+        <!-- 编辑器内容 -->
+        <h1>Editor</h1>
+        <textarea></textarea>
+      </div>
+      <div id="terminal">
+        <!-- 终端内容 -->
+      </div>
+    </div>
+  </div>
+  <script src="./renderer.js"></script>
+</body>
+</html>

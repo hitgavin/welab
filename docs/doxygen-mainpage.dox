@@ -1,0 +1,14 @@
+/*! \mainpage welab documentation
+ *
+ * \section intro_sec Introduction
+ *
+ * Welcome to welab! The original intention behind developing this software was
+ * to provide excellent encapsulation of C++ algorithms, while leveraging the
+ * powerful ecosystem of Python and the visual capabilities of Electron to achieve
+ * efficient debugging of algorithms. Due to the software author's industry
+ * background in planning and control, algorithms related to planning and
+ * control will receive special attention in the initial stages.
+ *
+ * \section main_changelog Change Log
+ * - Original content written 11/29/2023 by hitgavin
+ */
