@@ -2,13 +2,13 @@
  * @file This file contains the code for rendering the React application and initializing the Jupyter kernel connection.
  */
 
-import React from 'react';
-import ReactDOM from 'react-dom';
-import { Provider } from 'react-redux';
-import { combineReducers } from 'redux';
-import { NotebookApp } from '@nteract/notebook-app-component';
-import { kernels, notebooks, transforms } from '@nteract/core';
-import { configureStore } from '@reduxjs/toolkit';
+const React = require('react');
+const ReactDOM = require('react-dom');
+const { Provider } = require('react-redux');
+const { combineReducers } = require('redux');
+const { NotebookApp } = require('@nteract/notebook-app-component');
+const { kernels, notebooks, transforms } = require('@nteract/core');
+const { configureStore } = require('@reduxjs/toolkit');
 
 /**
  * Combines the reducers for kernels, notebooks, and transforms into a single root reducer.
@@ -47,9 +47,9 @@ store.dispatch(kernels.launchKernelByName({ kernelSpecName: 'python3', cwd: '.' 
  * @returns {JSX.Element} The rendered React component.
  */
 const App = () => (
-  <Provider store={store}>
-    <NotebookApp />
-  </Provider>
+  React.createElement(Provider, { store },
+    React.createElement(NotebookApp)
+  )
 );
 
-ReactDOM.render(<App />, document.getElementById('root'));
+ReactDOM.render(React.createElement(App), document.getElementById('root'));
