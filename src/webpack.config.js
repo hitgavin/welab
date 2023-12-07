@@ -33,7 +33,6 @@ module.exports = {
 
   // 开发服务器配置（如果需要）
   devServer: {
-    contentBase: path.join(__dirname, 'dist'),
     compress: true,
     port: 9000,
   },
