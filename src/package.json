@@ -6,13 +6,9 @@
   "author": "gavin",
   "license": "MIT",
   "scripts": {
-    "build": "webpack --mode production",
     "start": "electron ."
   },
   "dependencies": {
-    "@babel/core": "^7.23.5",
-    "@babel/preset-env": "^7.23.5",
-    "@babel/preset-react": "^7.23.3",
     "@nteract/core": "^11.0.0",
     "@nteract/jupyter-widgets": "^4.0.4",
     "@nteract/notebook-app-component": "^7.0.0",
@@ -21,8 +17,7 @@
     "react": "^17.0.0",
     "react-dom": "^17.0.0",
     "react-redux": "^7.2.2",
-    "redux": "^4.0.5",
-    "webpack-cli": "^5.1.4"
+    "redux": "^4.0.5"
   },
   "devDependencies": {
     "@electron/rebuild": "^3.2.9",
@@ -30,9 +25,7 @@
     "electron-builder": "^22.7.0",
     "electron-context-menu": "^3.0.0",
     "electron-log": "^4.2.1",
-    "electron-updater": "^4.3.1",
-    "webpack": "^5.89.0",
-    "webpack-dev-server": "^4.15.1"
+    "electron-updater": "^4.3.1"
   },
   "engines": {
     "node": ">=14.0.0",
