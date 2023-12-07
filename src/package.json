@@ -9,11 +9,26 @@
     "start": "electron ."
   },
   "dependencies": {
-    "node-pty": "1.1.0-beta1",
-    "electron": "22.3.14",
-    "xterm": "5.3.0-beta.7"
+    "@nteract/core": "^11.0.0",
+    "@nteract/jupyter-widgets": "^4.0.4",
+    "@nteract/notebook-app-component": "^7.0.0",
+    "@reduxjs/toolkit": "^1.5.1",
+    "redux": "^4.0.5",
+    "react-redux": "^7.2.2",
+    "react": "^17.0.0",
+    "react-dom": "^17.0.0"
   },
   "devDependencies": {
-    "@electron/rebuild": "^3.2.9"
+    "@electron/rebuild": "^3.2.9",
+    "electron": "11.5.0",
+    "electron-builder": "^22.7.0",
+    "electron-context-menu": "^3.0.0",
+    "electron-log": "^4.2.1",
+    "electron-updater": "^4.3.1"
+  },
+  "engines": {
+    "node": ">=14.0.0",
+    "npm": "please-use-yarn",
+    "yarn": ">= 1.16.0"
   }
 }
