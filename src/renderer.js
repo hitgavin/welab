@@ -3,18 +3,33 @@ const React = require("react");
 const ReactDOM = require("react-dom");
 const { Provider } = require("react-redux");
 const NotebookApp = require("@nteract/notebook-app-component");
+const { reducers, createContentRef } = require("@nteract/core");
 const { createEpicMiddleware } = require("redux-observable");
 const { contents } = require("rx-jupyter");
 
-const { counterReducer, initialState, contentRef } = require("./json-reducer");
-
 const epicMiddleware = createEpicMiddleware({ dependencies: contents.JupyterContentProvider });
 
+const initialState = {
+  core: {
+    entities: {
+      contents: {},
+      kernels: {},
+      kernelspecs: {}
+    }
+  },
+  config: {
+    // 这里可以放置一些全局配置选项
+  },
+};
+
 const store = configureStore({
-  reducer: {core: counterReducer, config: counterReducer},
+  reducer: reducers,
   preloadedState: initialState,
-  middleware: [epicMiddleware],
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({ serializableCheck: false }).concat(epicMiddleware)
 });
+
+const contentRef = createContentRef();
 
 const App = () => React.createElement(
   Provider,
@@ -23,4 +38,4 @@ const App = () => React.createElement(
 );
 
 const rootElement = document.getElementById("root");
-ReactDOM.render(React.createElement(App), rootElement);
+ReactDOM.render(App, rootElement);
