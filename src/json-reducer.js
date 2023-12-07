@@ -1,5 +1,5 @@
 const Immutable = require("immutable");
-const { makeEntitiesRecord, makeContentsRecord } = require("@nteract/core");
+const { makeEntitiesRecord, makeContentsRecord, makeStateRecord } = require("@nteract/core");
 const { createContentRef, createKernelspecsRef, makeNotebookContentRecord } = require("@nteract/core");
 
 const contentRef = createContentRef();
@@ -24,7 +24,7 @@ const initialState = {
   })
 };
 
-const reducer = (state, action) => {
+function counterReducer(state, action) {
   const newState = { ...state };
   switch (action.type) {
     case "CREATE": {
@@ -64,3 +64,5 @@ const reducer = (state, action) => {
     }
   }
 };
+
+module.exports = {counterReducer, initialState, contentRef}

@@ -6,12 +6,12 @@ const NotebookApp = require("@nteract/notebook-app-component");
 const { createEpicMiddleware } = require("redux-observable");
 const { contents } = require("rx-jupyter");
 
-const { reducer, initialState, contentRef } = require("./json-reducer");
+const { counterReducer, initialState, contentRef } = require("./json-reducer");
 
 const epicMiddleware = createEpicMiddleware({ dependencies: contents.JupyterContentProvider });
 
 const store = configureStore({
-  reducer,
+  reducer: {core: counterReducer, config: counterReducer},
   preloadedState: initialState,
   middleware: [epicMiddleware],
 });
