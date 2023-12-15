@@ -10,5 +10,7 @@
  * control will receive special attention in the initial stages.
  *
  * \section main_changelog Change Log
+ * - Temporarily give up the development of the electron application part and focus on
+ * the combination of jupyterlab-desktop and welab 2023/12/15
  * - Original content written 11/29/2023 by hitgavin
  */

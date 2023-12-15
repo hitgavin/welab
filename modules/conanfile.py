@@ -4,7 +4,7 @@ from conan.tools.cmake import CMakeToolchain, CMake, cmake_layout, CMakeDeps
 
 class WelabRecipe(ConanFile):
     name = "welab"
-    version = "1.0"
+    version = "0.0.1"
     package_type = "library"
 
     # Optional metadata
