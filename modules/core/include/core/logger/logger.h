@@ -22,6 +22,12 @@
  * This group support a full function logger for user to write all kinds of
  * information to files, console, etc.
  */
+
+/**
+ * @ingroup core_group
+ * @brief The core namespace.
+ * @{
+ */
 namespace core {
 /**
  * @ingroup logger_group
@@ -124,6 +130,7 @@ private:
 }  // namespace logger
 /** @} */
 }  // namespace core
+/** @} */
 
 /**
  * @brief A helper function used to get logger singleton object
