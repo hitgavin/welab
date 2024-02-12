@@ -12,6 +12,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_INSTALL_INCLUDEDIR ${CMAKE_INSTALL_PREFIX}/include)
 set(CMAKE_INSTALL_LIBDIR ${CMAKE_INSTALL_PREFIX}/lib)
 set(CMAKE_INSTALL_BINDIR ${CMAKE_INSTALL_PREFIX}/bin)
+set(CMAKE_INSTALL_SCRIPTDIR ${CMAKE_INSTALL_PREFIX}/python)
 
 option(BUILD_TESTING "Build tests" ON)
 
@@ -20,6 +21,7 @@ if(BUILD_TESTING)
 endif()
 
 add_subdirectory(core)
-# add_subdirectory(control)
+add_subdirectory(control)
 # add_subdirectory(optimization)
 add_subdirectory(planning)
+add_subdirectory(map)

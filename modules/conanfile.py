@@ -25,6 +25,7 @@ class WelabRecipe(ConanFile):
     def requirements(self):
         self.requires("spdlog/1.12.0")
         self.requires("fmt/10.1.1")
+        self.requires("robin-hood-hashing/3.11.5")
         self.requires("pybind11/2.11.1")
         self.test_requires("gtest/1.14.0")
 

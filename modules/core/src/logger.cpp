@@ -3,7 +3,6 @@
 #include "core/logger/logger_settings.h"
 #include "private/logger_p/logger_impl.h"
 
-#include <iostream>
 #include <memory>
 
 namespace core {
@@ -36,7 +35,6 @@ void Logger::warn(const std::string &msg) {
   if (!is_init()) {
     return;
   }
-  std::cout << this << std::endl;
   impl_->logger_->warn(msg);
 }
 
