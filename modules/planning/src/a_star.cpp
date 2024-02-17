@@ -14,7 +14,8 @@ AStarAlgorithm<NodeT>::AStarAlgorithm()
     : start_(nullptr),
       goal_(nullptr),
       best_heuristic_node_(std::numeric_limits<double>::max(), 0),
-      tolerance_(0.0) {
+      tolerance_(0.0),
+      traverse_unknown_(true) {
   graph_.reserve(100000);
 }
 
@@ -25,6 +26,10 @@ bool AStarAlgorithm<NodeT>::create_path(CoordinateVector &path,
   tolerance_ = tolerance;
   best_heuristic_node_ = {std::numeric_limits<double>::max(), 0};
   clear_queue();
+
+  if (!are_inputs_valid()) {
+    return false;
+  }
 
   return true;
 }
@@ -47,6 +52,11 @@ typename AStarAlgorithm<NodeT>::NodePtr AStarAlgorithm<NodeT>::get_start() {
 template <typename NodeT>
 typename AStarAlgorithm<NodeT>::NodePtr AStarAlgorithm<NodeT>::get_goal() {
   return goal_;
+}
+
+template <typename NodeT>
+double &AStarAlgorithm<NodeT>::get_tolerance_heuristic() {
+  return tolerance_;
 }
 
 template <typename NodeT>

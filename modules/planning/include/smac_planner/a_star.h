@@ -84,12 +84,19 @@ public:
    * @return Node pointer to start node
    */
   NodePtr get_start();
+
   /**
    * @brief Get pointer to goal node
    *
    * @return Node pointer to goal node
    */
   NodePtr get_goal();
+
+  /**
+   * @brief Get tolerance error between nodes.
+   * @return Reference to tolerance parameter.
+   */
+  double &get_tolerance_heuristic();
 
 protected:
   /**
@@ -108,7 +115,9 @@ protected:
   NodePtr start_;
   NodePtr goal_;
   NodeHeuristicPair best_heuristic_node_;
+
   double tolerance_;
+  bool traverse_unknown_;
 };
 
 }  // namespace smac_planner
