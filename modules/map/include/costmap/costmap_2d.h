@@ -121,6 +121,19 @@ public:
     return settings_.cells_size_x_ * my + mx;
   }
 
+  /**
+   * @brief Accessor for the x size of the costmap in cells
+   *
+   * @return The x size of the costmap
+   */
+  std::uint32_t get_size_in_cells_x() const;
+  /**
+   * @brief Accessor for the y size of the costmap in cells
+   *
+   * @return The y size of the costmap
+   */
+  std::uint32_t get_size_in_cells_y() const;
+
 protected:
   Costmap2DSettings settings_;
   std::shared_ptr<unsigned char[]> costmap_;

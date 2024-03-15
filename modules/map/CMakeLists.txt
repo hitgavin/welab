@@ -3,7 +3,10 @@ project(map CXX)
 
 include_directories(include)
 
-add_library(welab_map src/costmap_2d.cpp)
+add_library(welab_map
+            src/costmap_2d.cpp
+            src/footprint_collision_checker.cpp
+)
 target_link_libraries(welab_map welab_core)
 target_include_directories(welab_map PUBLIC include)
 
